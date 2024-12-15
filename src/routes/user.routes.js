@@ -9,6 +9,9 @@ const {
   profile,
   uploadKYCDocument,
   userDashboard,
+  updateProfile,
+  getReferralAmountPercentage,
+  getSocialMediaLinks,
 } = require("../controllers/user.controller.js");
 const { verifyToken } = require("../utils/authHelper.js");
 const Validators = require("../validators/user.validator.js");
@@ -415,10 +418,18 @@ router.route("/logout").get(logout);
 
 router.route("/").get(verifyToken, profile);
 
-router.route("/").patch(Validators("validAdminRegister"), verifyToken, profile);
+router
+  .route("/")
+  .patch(Validators("validUpdateProfile"), verifyToken, updateProfile);
 
 router.route("/upload-kyc-document").post(verifyToken, uploadKYCDocument);
 
 router.route("/user-dashboard").get(verifyToken, userDashboard);
+
+router.route("/get-social-media-links").get(verifyToken, getSocialMediaLinks);
+
+router
+  .route("/get-referral-amount-percentage")
+  .get(verifyToken, getReferralAmountPercentage);
 
 module.exports = router;

@@ -1,9 +1,11 @@
+const Settings = require("../models/settings.model");
 const getMessage = require("../utils/message");
 const { errorHandler, successHandler } = require("../utils/responseHandler");
 
+// update social media links
 exports.updateSocialMediaLinks = async (req, res) => {
   try {
-    const { _id, role } = req.user;
+    const { role } = req.user;
     const { whatsAppLink, facebookLink, instagramLink, telegramLink } =
       req.body;
 
@@ -50,9 +52,10 @@ exports.updateSocialMediaLinks = async (req, res) => {
   }
 };
 
+// update referral amount percentage
 exports.updateReferralAmountPercentage = async (req, res) => {
   try {
-    const { _id, role } = req.user;
+    const { role } = req.user;
     const { referralAmountPercentage } = req.body;
 
     if (role === "user") {
@@ -67,14 +70,6 @@ exports.updateReferralAmountPercentage = async (req, res) => {
       ...(referralAmountPercentage && { referralAmountPercentage }),
     };
 
-    if (Object.keys(updateObject).length === 0) {
-      return errorHandler({
-        res,
-        statusCode: 400,
-        message: getMessage("M026"),
-      });
-    }
-
     const updatedSettings = await Settings.updateOne(
       {},
       { $set: updateObject }
@@ -83,7 +78,7 @@ exports.updateReferralAmountPercentage = async (req, res) => {
     return successHandler({
       res,
       statusCode: 200,
-      message: getMessage("M027"),
+      message: getMessage("M028"),
       data: updatedSettings,
     });
   } catch (err) {

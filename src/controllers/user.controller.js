@@ -8,6 +8,7 @@ const { hashPassword, comparePassword } = require("../utils/passwordHelper");
 const crypto = require("crypto");
 const { uploadFiles } = require("../utils/upload");
 const Transaction = require("../models/transaction.model");
+const Settings = require("../models/settings.model");
 //user generate otp
 exports.generateOTP = async (req, res) => {
   const { mobileNo } = req.body;
@@ -425,6 +426,7 @@ exports.uploadKYCDocument = async (req, res) => {
   }
 };
 
+// get user dashborad data
 exports.userDashboard = async (req, res) => {
   try {
     const { _id } = req.user;
@@ -466,5 +468,47 @@ exports.userDashboard = async (req, res) => {
       statusCode: 500,
       message: err.message,
     });
+  }
+};
+
+// get social media links
+exports.getSocialMediaLinks = async (req, res) => {
+  try {
+    const data = await Settings.findOne(
+      {},
+      { referralAmountPercentage: 0, _id: 0, __v: 0 }
+    );
+
+    return successHandler({
+      res,
+      data: data,
+      statusCode: 200,
+      message: getMessage("M029"),
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
+
+// get referral amount percentage
+exports.getReferralAmountPercentage = async (req, res) => {
+  try {
+    const data = await Settings.findOne(
+      {},
+      { referralAmountPercentage: 1, _id: 0, __v: 0 }
+    );
+
+    return successHandler({
+      res,
+      data: data, 
+      statusCode: 200,
+      message: getMessage("M030"),
+    });
+  } catch (err) {
+    return errorHandler({ res, statusCode: 500, message: err.message });
   }
 };

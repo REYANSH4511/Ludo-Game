@@ -25,5 +25,8 @@ exports.messageList = {
   M024: "Referral code not applied!",
   M025: "User dashboard data fetched successfully!",
   M026: "Please provide at least one social media link!",
-  M027: "Social media link updated successfully!",
+  M027: "Social media links updated successfully!",
+  M028: "referral amount percentage updated successfully!",
+  M029: "Social Media Links fetched successfully!",
+  M030: "Referral amount percentage fetched successfully!",
 };
