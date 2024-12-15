@@ -498,7 +498,7 @@ router.route("/").get(verifyToken, profile);
 /**
  * @swagger
  * /api/v1/users:
- *   patch:
+ *   post:
  *     summary: Update user profile
  *     description: Updates the profile information of the authenticated user.
  *     tags: [Users]
@@ -617,7 +617,7 @@ router.route("/").get(verifyToken, profile);
 
 router
   .route("/")
-  .post(Validators("validUpdateProfile"), verifyToken, updateProfile);
+  .patch(Validators("validUpdateProfile"), verifyToken, updateProfile);
 
 router.route("/upload-kyc-document").post(verifyToken, uploadKYCDocument);
 
