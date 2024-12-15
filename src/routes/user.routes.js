@@ -418,85 +418,6 @@ router.route("/logout", verifyToken).get(logout);
 
 /**
  * @swagger
- * /api/v1/users:
- *   get:
- *     summary: Get user profile
- *     description: Retrieves the profile information of the authenticated user.
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       '200':
- *         description: Successfully retrieved user profile.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 statusCode:
- *                   type: number
- *                 status:
- *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: string
- *                       description: The unique identifier of the user.
- *                       example: "1234567890abcdef"
- *                     name:
- *                       type: string
- *                       description: The name of the user.
- *                       example: "John Doe"
- *                     email:
- *                       type: string
- *                       description: The email address of the user.
- *                       example: "johndoe@example.com"
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *                       description: The date the user profile was created.
- *                       example: "2024-01-01T12:00:00Z"
- *       '401':
- *         description: Unauthorized, missing or invalid token.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 statusCode:
- *                   type: number
- *                 status:
- *                   type: string
- *                 msg:
- *                   type: string
- *               example:
- *                 statusCode: 401
- *                 status: "error"
- *                 msg: "Unauthorized, invalid or missing token."
- *       '500':
- *         description: Internal server error.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 statusCode:
- *                   type: number
- *                 status:
- *                   type: string
- *                 msg:
- *                   type: string
- *               example:
- *                 statusCode: 500
- *                 status: "error"
- *                 msg: "Internal server error."
- */
-
-router.route("/").get(verifyToken, profile);
-
-/**
- * @swagger
  * /api/v1/users/update-profile:
  *   post:
  *     summary: Update user profile
@@ -617,7 +538,7 @@ router.route("/").get(verifyToken, profile);
 
 router
   .route("/update-profile")
-  .post( verifyToken, updateProfile);
+  .post(Validators("validUpdateProfile"), verifyToken, updateProfile);
 
 router.route("/upload-kyc-document").post(verifyToken, uploadKYCDocument);
 
@@ -840,5 +761,84 @@ router.route("/get-social-media-links").get(verifyToken, getSocialMediaLinks);
 router
   .route("/get-referral-amount-percentage")
   .get(verifyToken, getReferralAmountPercentage);
+
+/**
+ * @swagger
+ * /api/v1/users:
+ *   get:
+ *     summary: Get user profile
+ *     description: Retrieves the profile information of the authenticated user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved user profile.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: The unique identifier of the user.
+ *                       example: "1234567890abcdef"
+ *                     name:
+ *                       type: string
+ *                       description: The name of the user.
+ *                       example: "John Doe"
+ *                     email:
+ *                       type: string
+ *                       description: The email address of the user.
+ *                       example: "johndoe@example.com"
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       description: The date the user profile was created.
+ *                       example: "2024-01-01T12:00:00Z"
+ *       '401':
+ *         description: Unauthorized, missing or invalid token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized, invalid or missing token."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
+
+router.route("/").get(verifyToken, profile);
 
 module.exports = router;
