@@ -8,6 +8,7 @@ const {
   logout,
   profile,
   uploadKYCDocument,
+  userDashboard,
 } = require("../controllers/user.controller.js");
 const { verifyToken } = require("../utils/authHelper.js");
 const Validators = require("../validators/user.validator.js");
@@ -115,6 +116,9 @@ router.route("/generate-otp").post(Validators("validSendOTP"), generateOTP);
  *                 type: string
  *                 pattern: "^\\d{6}$"
  *                 description: OTP must be exactly 6 digits.
+ *               referalCode:
+ *                 type: string
+ *                 description: Referral code for the user.
  *             required:
  *               - mobileNo
  *               - otp
@@ -414,5 +418,7 @@ router.route("/").get(verifyToken, profile);
 router.route("/").patch(Validators("validAdminRegister"), verifyToken, profile);
 
 router.route("/upload-kyc-document").post(verifyToken, uploadKYCDocument);
+
+router.route("/user-dashboard").get(verifyToken, userDashboard);
 
 module.exports = router;

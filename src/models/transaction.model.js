@@ -16,7 +16,7 @@ const transactionSchema = new Schema(
       type: Number,
       required: true,
     },
-    isApproved: {
+    status: {
       type: "string",
       enum: ["pending", "approved", "rejected"],
       default: "pending",
@@ -30,7 +30,6 @@ const transactionSchema = new Schema(
       type: String,
       default: null,
     },
-    
   },
   {
     timestamps: true,

@@ -18,4 +18,11 @@ exports.messageList = {
   M017: "transaction list fetched successfully!",
   M018: "transaction approved successfully!",
   M019: "transaction rejected successfully!",
+  M020: "Referral code is required!",
+  M021: "Referral code not found!",
+  M022: "Referral code already used!",
+  M023: "Referral code applied successfully!",
+  M024: "Referral code not applied!",
+  M025: "User dashboard data fetched successfully!",
+  M026: "Please provide at least one social media link!",
 };

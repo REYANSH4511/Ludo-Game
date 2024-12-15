@@ -26,6 +26,7 @@ const Validators = {
         "string.pattern.base": "OTP should be of 6 digits.",
         "any.required": "OTP is required.",
       }),
+    referalCode: Joi.string(),
   }),
   validLogin: Joi.object({
     email: Joi.string().email().required(),

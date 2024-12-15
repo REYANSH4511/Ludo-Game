@@ -58,6 +58,8 @@ const Validator = require("../validators/transaction.validator");
  *                       type: number
  *                     type:
  *                       type: string
+ *                       enum: ["deposit", "withdraw"]
+ *                       description: The type of transaction, either "deposit" or "withdraw".
  *                     screenShot:
  *                       type: string
  *               example:

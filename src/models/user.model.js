@@ -1,3 +1,4 @@
+const { ref } = require("joi");
 const { Schema, model } = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 
@@ -13,12 +14,12 @@ const kycDocumentSchema = new Schema({
     default: null,
   },
   frontPhoto: {
-    type: String, 
+    type: String,
     trim: true,
     default: null,
   },
   backPhoto: {
-    type: String, 
+    type: String,
     trim: true,
     default: null,
   },
@@ -33,7 +34,6 @@ const userSchema = new Schema(
     },
     email: {
       type: String,
-      unique: true,
       lowercase: true,
       trim: true,
     },
@@ -59,13 +59,17 @@ const userSchema = new Schema(
       trim: true,
     },
     referedBy: {
-      type: String,
-      trim: true,
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
     salt: {
       type: String,
       trim: true,
       default: null,
+    },
+    referralAmount: {
+      type: Number,
+      default: 0,
     },
     kycDocument: kycDocumentSchema,
   },
@@ -78,8 +82,7 @@ const userSchema = new Schema(
 userSchema.pre("save", async function (next) {
   if (this.role === "user" && !this.referalCode) {
     const uuidSegment = uuidv4().split("-")[0]; // Use a segment of the UUID
-    console.log("uuidSegment", uuidSegment);
-    this.referalCode = `REF-${this.mobileNo}-${uuidSegment}`;
+    this.referalCode = uuidSegment;
   }
   next();
 });

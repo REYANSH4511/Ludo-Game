@@ -7,6 +7,7 @@ const { createAuthResponse } = require("../utils/authHelper");
 const { hashPassword, comparePassword } = require("../utils/passwordHelper");
 const crypto = require("crypto");
 const { uploadFiles } = require("../utils/upload");
+const Transaction = require("../models/transaction.model");
 //user generate otp
 exports.generateOTP = async (req, res) => {
   const { mobileNo } = req.body;
@@ -42,7 +43,7 @@ exports.generateOTP = async (req, res) => {
 //user verify otp
 exports.verifyOTP = async (req, res) => {
   try {
-    const { mobileNo, otp } = req.body;
+    const { mobileNo, otp, referalCode } = req.body;
 
     if (!mobileNo || !otp) {
       return errorHandler({
@@ -77,6 +78,15 @@ exports.verifyOTP = async (req, res) => {
     await OTP.deleteOne({ mobileNo });
     const user = await User.findOne({ mobileNo });
     const authResponse = await createAuthResponse(user, res);
+    if (referalCode) {
+      const referalUser = await User.findOne({ referalCode });
+      if (referalUser) {
+        await User.updateOne(
+          { mobileNo },
+          { $set: { referedBy: referalUser._id } }
+        );
+      }
+    }
     return successHandler({
       res,
       data: authResponse,
@@ -404,6 +414,50 @@ exports.uploadKYCDocument = async (req, res) => {
       res,
       statusCode: 500,
       message: error.message,
+    });
+  }
+};
+
+exports.userDashboard = async (req, res) => {
+  try {
+    const { _id } = req.user;
+    const user = await User.findOne({ _id }, { referralAmount: 1 });
+    if (!user) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M002"),
+      });
+    }
+    const transactions = await Transaction.find({ userId: _id });
+    const totalAmount = transactions.reduce((acc, curr) => {
+      if (curr.status === "approved") {
+        return (
+          acc +
+          (curr.type === "deposit"
+            ? curr.amount
+            : curr.type === "withdraw"
+            ? -curr.amount
+            : 0)
+        );
+      }
+      return acc;
+    }, 0);
+    const data = {
+      totalAmount,
+      referralAmount: user.referralAmount,
+    };
+    return successHandler({
+      res,
+      data: data,
+      statusCode: 200,
+      message: getMessage("M025"),
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
     });
   }
 };
