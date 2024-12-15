@@ -616,7 +616,7 @@ router.route("/").get(verifyToken, profile);
  */
 
 router
-  .route("/")
+  .route("/update")
   .patch(Validators("validUpdateProfile"), verifyToken, updateProfile);
 
 router.route("/upload-kyc-document").post(verifyToken, uploadKYCDocument);
