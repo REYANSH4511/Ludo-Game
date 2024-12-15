@@ -416,17 +416,426 @@ router
 
 router.route("/logout").get(logout);
 
+/**
+ * @swagger
+ * /api/v1/users:
+ *   get:
+ *     summary: Get user profile
+ *     description: Retrieves the profile information of the authenticated user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved user profile.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: The unique identifier of the user.
+ *                       example: "1234567890abcdef"
+ *                     name:
+ *                       type: string
+ *                       description: The name of the user.
+ *                       example: "John Doe"
+ *                     email:
+ *                       type: string
+ *                       description: The email address of the user.
+ *                       example: "johndoe@example.com"
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                       description: The date the user profile was created.
+ *                       example: "2024-01-01T12:00:00Z"
+ *       '401':
+ *         description: Unauthorized, missing or invalid token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized, invalid or missing token."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
+
 router.route("/").get(verifyToken, profile);
+
+/**
+ * @swagger
+ * /api/v1/users:
+ *   patch:
+ *     summary: Update user profile
+ *     description: Updates the profile information of the authenticated user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: The updated name of the user.
+ *                 example: "John Doe"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: The updated email address of the user.
+ *                 example: "johndoe@example.com"
+ *               mobileNo:
+ *                 type: string
+ *                 pattern: "^[0-9]{10}$"
+ *                 description: The updated mobile number of the user (10 digits).
+ *                 example: "9876543210"
+ *               password:
+ *                 type: string
+ *                 description: The updated password of the user.
+ *                 example: "NewSecurePassword123!"
+ *     responses:
+ *       '200':
+ *         description: User profile successfully updated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                       description: The unique identifier of the user.
+ *                       example: "1234567890abcdef"
+ *                     name:
+ *                       type: string
+ *                       description: The updated name of the user.
+ *                       example: "John Doe"
+ *                     email:
+ *                       type: string
+ *                       description: The updated email of the user.
+ *                       example: "johndoe@example.com"
+ *                     mobileNo:
+ *                       type: string
+ *                       description: The updated mobile number of the user.
+ *                       example: "9876543210"
+ *       '400':
+ *         description: Bad request, invalid input data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 400
+ *                 status: "error"
+ *                 msg: "Invalid input data."
+ *       '401':
+ *         description: Unauthorized, missing or invalid token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized, invalid or missing token."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
 
 router
   .route("/")
-  .patch(Validators("validUpdateProfile"), verifyToken, updateProfile);
+  .post(Validators("validUpdateProfile"), verifyToken, updateProfile);
 
 router.route("/upload-kyc-document").post(verifyToken, uploadKYCDocument);
 
+/**
+ * @swagger
+ * /api/v1/users/user-dashboard:
+ *   get:
+ *     summary: Retrieve user dashboard data
+ *     description: Fetches personalized dashboard data for the authenticated user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved dashboard data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   description: The user-specific dashboard data.
+ *                   example:
+ *                     recentActivities:
+ *                       - activity: "Logged in"
+ *                         timestamp: "2024-12-15T10:00:00Z"
+ *                       - activity: "Updated profile"
+ *                         timestamp: "2024-12-14T15:30:00Z"
+ *                     notifications:
+ *                       - message: "Your profile was updated successfully."
+ *                         read: false
+ *                     stats:
+ *                       totalTransactions: 15
+ *                       totalEarnings: 5000
+ *       '401':
+ *         description: Unauthorized, missing or invalid token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized, invalid or missing token."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
+
 router.route("/user-dashboard").get(verifyToken, userDashboard);
 
+/**
+ * @swagger
+ * /api/v1/users/get-social-media-links:
+ *   get:
+ *     summary: Retrieve social media links
+ *     description: Fetches the configured social media links for the user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved social media links.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     whatsAppLink:
+ *                       type: string
+ *                       description: WhatsApp link.
+ *                       example: "https://wa.me/1234567890"
+ *                     facebookLink:
+ *                       type: string
+ *                       description: Facebook page link.
+ *                       example: "https://facebook.com/yourpage"
+ *                     instagramLink:
+ *                       type: string
+ *                       description: Instagram profile link.
+ *                       example: "https://instagram.com/yourprofile"
+ *                     telegramLink:
+ *                       type: string
+ *                       description: Telegram link.
+ *                       example: "https://t.me/yourchannel"
+ *       '401':
+ *         description: Unauthorized, missing or invalid token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized, invalid or missing token."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
+
 router.route("/get-social-media-links").get(verifyToken, getSocialMediaLinks);
+
+/**
+ * @swagger
+ * /api/v1/users/get-referral-amount-percentage:
+ *   get:
+ *     summary: Retrieve referral amount percentage
+ *     description: Fetches the referral amount percentage configured for the user.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved referral amount percentage.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     referralAmountPercentage:
+ *                       type: number
+ *                       description: The referral amount percentage.
+ *                       example: 5
+ *       '401':
+ *         description: Unauthorized, missing or invalid token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized, invalid or missing token."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
 
 router
   .route("/get-referral-amount-percentage")

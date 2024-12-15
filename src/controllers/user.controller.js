@@ -504,7 +504,7 @@ exports.getReferralAmountPercentage = async (req, res) => {
 
     return successHandler({
       res,
-      data: data, 
+      data: data,
       statusCode: 200,
       message: getMessage("M030"),
     });
