@@ -538,7 +538,7 @@ router.route("/logout", verifyToken).get(logout);
 
 router
   .route("/update-profile")
-  .post( updateProfile);
+  .post(Validators("validUpdateProfile"), verifyToken, updateProfile);
 
 router.route("/upload-kyc-document").post(verifyToken, uploadKYCDocument);
 
