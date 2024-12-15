@@ -312,9 +312,16 @@ exports.profile = async (req, res) => {
         message: getMessage("M002"),
       });
     }
+    const dasboardData = {
+      cashWon: 0,
+      battlePlayed: 0,
+      referralEarning: 0,
+      penalty: 0,
+    };
+
     return successHandler({
       res,
-      data: userDetails,
+      data: { userDetails, dasboardData },
       statusCode: 200,
       message: getMessage("M013"),
     });

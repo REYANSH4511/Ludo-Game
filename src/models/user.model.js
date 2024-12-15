@@ -71,6 +71,10 @@ const userSchema = new Schema(
       type: Number,
       default: 0,
     },
+    isKYCVerified: {
+      type: Boolean,
+      default: false,
+    },
     kycDocument: kycDocumentSchema,
   },
   {
