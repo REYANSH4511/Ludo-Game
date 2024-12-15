@@ -414,7 +414,7 @@ router
  *                 msg: "Internal server error."
  */
 
-router.route("/logout").get(logout);
+router.route("/logout", verifyToken).get(logout);
 
 /**
  * @swagger
