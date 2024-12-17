@@ -38,7 +38,7 @@ const Validators = {
   }),
   validTransactionResponseByAdmin: Joi.object({
     transactionId: Joi.string().required(),
-    isVerified: Joi.boolean().required(),
+    isApproved: Joi.boolean().required(),
   }),
 };
 

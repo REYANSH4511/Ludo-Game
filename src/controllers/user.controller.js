@@ -392,29 +392,21 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+//upload kyc document
 exports.uploadKYCDocument = async (req, res) => {
   try {
     const { _id } = req.user;
-    const { id, name } = req.body;
-    const files = req.files;
-    const allowedFields = ["frontPhoto", "backPhoto"];
-
-    // Save files
-    const savedFiles = await uploadFiles(
-      files,
-      allowedFields,
-      path.join(__dirname, "../docs/uploads")
-    );
+    const { aadharNumber, name, frontPhoto, backPhoto } = req.body;
 
     // Update user KYC document data
     const updatedUser = await User.findOneAndUpdate(
       { _id },
       {
         kycDocument: {
-          id,
+          aadharNumber,
           name,
-          frontPhoto: savedFiles.frontPhoto,
-          backPhoto: savedFiles.backPhoto,
+          frontPhoto,
+          backPhoto,
         },
       },
       { new: true }

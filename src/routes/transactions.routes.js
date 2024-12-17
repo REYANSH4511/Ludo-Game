@@ -147,9 +147,9 @@ router
  *                 type: string
  *                 description: The unique ID of the transaction.
  *                 example: "64f1c2e2ab3c2d1b7f9a8e1a"
- *               isVerified:
+ *               isApproved:
  *                 type: boolean
- *                 description: Indicates whether the transaction is verified or rejected.
+ *                 description: Indicates whether the transaction is approved or rejected.
  *                 example: true
  *     responses:
  *       '200':

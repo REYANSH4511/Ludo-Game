@@ -540,7 +540,120 @@ router
   .route("/")
   .post(Validators("validUpdateProfile"), verifyToken, updateProfile);
 
-router.route("/upload-kyc-document").post(verifyToken, uploadKYCDocument);
+/**
+ * @swagger
+ * /api/v1/users/upload-kyc-document:
+ *   post:
+ *     summary: Upload KYC document
+ *     description: Allows a user to upload their KYC (Know Your Customer) document, including name, ID, and photos.
+ *     tags: [Users]
+ *     security:
+ *       - BearerAuth: [] # Token-based authorization
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               kycDocument:
+ *                 type: object
+ *                 required:
+ *                   - name
+ *                   - frontPhoto
+ *                   - backPhoto
+ *                   - id
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     description: Name of the individual on the KYC document.
+ *                     example: "John Doe"
+ *                   frontPhoto:
+ *                     type: string
+ *                     description: URL or Base64 string of the front side of the document.
+ *                     example: "data:image/png;base64,..."
+ *                   backPhoto:
+ *                     type: string
+ *                     description: URL or Base64 string of the back side of the document.
+ *                     example: "data:image/png;base64,..."
+ *                   aadharNumber:
+ *                     type: string
+ *                     description: Unique identifier of the document.
+ *                     example: "AB1234567"
+ *     responses:
+ *       '200':
+ *         description: KYC document uploaded successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 200
+ *                 status: "success"
+ *                 msg: "KYC document uploaded successfully."
+ *       '400':
+ *         description: Bad request, invalid input data.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 400
+ *                 status: "error"
+ *                 msg: "Invalid input data."
+ *       '401':
+ *         description: Unauthorized, invalid or missing token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized. Token is missing or invalid."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
+
+router
+  .route("/upload-kyc-document")
+  .post(Validators("validUploadKYCDocument"), verifyToken, uploadKYCDocument);
 
 /**
  * @swagger

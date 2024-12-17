@@ -43,6 +43,14 @@ const Validators = {
         "any.required": "Mobile number is required.",
       }),
   }),
+  validUploadKYCDocument: Joi.object({
+    kycDocument: Joi.object({
+      name: Joi.string().required(),
+      frontPhoto: Joi.string().required(),
+      backPhoto: Joi.string().required(),
+      aadharNumber: Joi.string().required(),
+    }),
+  }),
   validLogin: Joi.object({
     email: Joi.string().email().required(),
     password: Joi.string().required(),

@@ -26,13 +26,11 @@ exports.createTransaction = async (req, res) => {
       } else if (paymentMethod === "bankAccount") {
         payload.bankAccountDetails = bankAccountDetails;
       }
-    }
-    if (utrNo) {
+    } else {
       payload.utrNo = utrNo;
-    }
-    if (screenShot) {
       payload.screenShot = screenShot;
     }
+
     await Transaction.create(payload);
     return successHandler({
       res,

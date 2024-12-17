@@ -3,7 +3,7 @@ const { Schema, model } = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 
 const kycDocumentSchema = new Schema({
-  id: {
+  aadharNumber: {
     type: String,
     trim: true,
     default: null,
