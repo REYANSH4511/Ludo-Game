@@ -1,4 +1,3 @@
-const { ref } = require("joi");
 const { Schema, model } = require("mongoose");
 const { v4: uuidv4 } = require("uuid");
 
@@ -25,6 +24,28 @@ const kycDocumentSchema = new Schema({
   },
 });
 
+const balanceSchema = new Schema({
+  cashWon: {
+    type: Number,
+    default: 0,
+  },
+  totalBalance: {
+    type: Number,
+    default: 0,
+  },
+  referralEarning: {
+    type: Number,
+    default: 0,
+  },
+  penalty: {
+    type: Number,
+    default: 0,
+  },
+  battlePlayed: {
+    type: Number,
+    default: 0,
+  },
+});
 const userSchema = new Schema(
   {
     name: {
@@ -67,10 +88,6 @@ const userSchema = new Schema(
       trim: true,
       default: null,
     },
-    referralAmount: {
-      type: Number,
-      default: 0,
-    },
     isKYCVerified: {
       type: Boolean,
       default: false,
@@ -80,6 +97,7 @@ const userSchema = new Schema(
       default: false,
     },
     kycDocument: kycDocumentSchema,
+    balance: balanceSchema,
   },
   {
     timestamps: true,

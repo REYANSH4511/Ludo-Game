@@ -6,7 +6,6 @@ const dayjs = require("dayjs");
 const { createAuthResponse } = require("../utils/authHelper");
 const { hashPassword, comparePassword } = require("../utils/passwordHelper");
 const crypto = require("crypto");
-const { uploadFiles } = require("../utils/upload");
 const Transaction = require("../models/transaction.model");
 const Settings = require("../models/settings.model");
 const {

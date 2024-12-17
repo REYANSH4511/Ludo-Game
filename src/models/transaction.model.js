@@ -39,6 +39,10 @@ const transactionSchema = new Schema(
       enum: ["deposit", "withdraw"],
       required: true,
     },
+    isReferral: {
+      type: Boolean,
+      default: false,
+    },
     amount: {
       type: Number,
       required: true,
