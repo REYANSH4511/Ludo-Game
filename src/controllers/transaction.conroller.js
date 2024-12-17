@@ -6,9 +6,30 @@ const { successHandler, errorHandler } = require("../utils/responseHandler");
 exports.createTransaction = async (req, res) => {
   try {
     const { _id } = req.user;
-    const { amount, type, screenShot } = req.body;
+    const {
+      amount,
+      type,
+      screenShot,
+      utrNo,
+      userDetails,
+      paymentMethod,
+      upiId,
+      bankAccountDetails,
+    } = req.body;
 
-    const payload = { userId: _id, amount, type };
+    const payload = { userId: _id, amount, type, userDetails };
+
+    if (type === "withdraw") {
+      payload.paymentMethod = paymentMethod;
+      if (paymentMethod === "upi") {
+        payload.upiId = upiId;
+      } else if (paymentMethod === "bankAccount") {
+        payload.bankAccountDetails = bankAccountDetails;
+      }
+    }
+    if (utrNo) {
+      payload.utrNo = utrNo;
+    }
     if (screenShot) {
       payload.screenShot = screenShot;
     }

@@ -1,11 +1,44 @@
 const Joi = require("joi");
 const { errorHandler } = require("../utils/responseHandler");
 
+const bankAccountDetailsSchema = Joi.object({
+  bankName: Joi.string().required(),
+  accountNumber: Joi.string().required(),
+  ifscCode: Joi.string().required(),
+});
+
+const userDetailsSchema = Joi.object({
+  name: Joi.string().required(),
+  mobileNo: Joi.string().required(),
+});
+
 const Validators = {
   validTransactionEntry: Joi.object({
-    amount: Joi.number().required(),
+    userDetails: userDetailsSchema.required(),
     type: Joi.string().valid("deposit", "withdraw").required(),
-    screenShot: Joi.string(),
+    utrNo: Joi.string(),
+    amount: Joi.number().positive().required(),
+    paymentMethod: Joi.string().valid("upi", "bankAccount").required(),
+    upiId: Joi.when("paymentMethod", {
+      is: "upi",
+      then: Joi.string().required().messages({
+        "any.required": "UPI ID is required when paymentMethod is 'upi'.",
+      }),
+      otherwise: Joi.forbidden(),
+    }),
+    bankAccountDetails: Joi.when("paymentMethod", {
+      is: "bankAccount",
+      then: bankAccountDetailsSchema.required().messages({
+        "any.required":
+          "Bank Account Details are required when paymentMethod is 'bankAccount'.",
+      }),
+      otherwise: Joi.forbidden(),
+    }),
+    screenShot: Joi.string().optional(),
+  }),
+  validTransactionResponseByAdmin: Joi.object({
+    transactionId: Joi.string().required(),
+    isVerified: Joi.boolean().required(),
   }),
 };
 

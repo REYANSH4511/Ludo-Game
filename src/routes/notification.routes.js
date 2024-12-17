@@ -1,21 +1,22 @@
 const express = require("express");
-const router = express.Router();
+const Validator = require("../validators/notification.validator");
 const { verifyToken } = require("../utils/authHelper");
 const {
-  createTransaction,
-  getTransactions,
-  transactionResponse,
-} = require("../controllers/transaction.conroller");
-const { route } = require("./user.routes");
-const Validator = require("../validators/transaction.validator");
+  sendNotificationByAdmin,
+  deleteNotification,
+  getNotifications,
+} = require("../controllers/notification.controller");
+const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/transactions:
+ * /api/v1/notification:
  *   post:
- *     summary: Create a new transaction
- *     description: Allows the user to create a transaction, either a deposit or a withdrawal.
- *     tags: [Transactions]
+ *     summary: Send Notification by Admin
+ *     description: Allows an admin to send a notification with a title, message, and target user ID.
+ *     tags: [Notification]
+ *     security:
+ *       - BearerAuth: [] # Token-based authorization
  *     requestBody:
  *       required: true
  *       content:
@@ -23,22 +24,21 @@ const Validator = require("../validators/transaction.validator");
  *           schema:
  *             type: object
  *             properties:
- *               amount:
- *                 type: number
- *                 description: The amount of the transaction.
- *                 example: 500
- *               type:
+ *               title:
  *                 type: string
- *                 description: The type of transaction, either "deposit" or "withdraw".
- *                 enum: ["deposit", "withdraw"]
- *                 example: "deposit"
- *               screenShot:
+ *                 description: The title of the notification.
+ *                 example: "System Update"
+ *               message:
  *                 type: string
- *                 description: A screenshot of the transaction as proof (optional).
- *                 example: "base64-encoded-image-data"
+ *                 description: The content of the notification message.
+ *                 example: "The system will undergo maintenance at midnight."
+ *               userId:
+ *                 type: string
+ *                 description: The unique user ID to whom the notification is sent.
+ *                 example: "64f1c2e2ab3c2d1b7f9a8e1a"
  *     responses:
- *       '201':
- *         description: Transaction successfully created.
+ *       '200':
+ *         description: Notification sent successfully.
  *         content:
  *           application/json:
  *             schema:
@@ -48,30 +48,14 @@ const Validator = require("../validators/transaction.validator");
  *                   type: number
  *                 status:
  *                   type: string
- *                 data:
- *                   type: object
- *                   properties:
- *                     transactionId:
- *                       type: string
- *                       description: The ID of the created transaction.
- *                     amount:
- *                       type: number
- *                     type:
- *                       type: string
- *                       enum: ["deposit", "withdraw"]
- *                       description: The type of transaction, either "deposit" or "withdraw".
- *                     screenShot:
- *                       type: string
+ *                 msg:
+ *                   type: string
  *               example:
- *                 statusCode: 201
+ *                 statusCode: 200
  *                 status: "success"
- *                 data:
- *                   transactionId: "12345abc"
- *                   amount: 500
- *                   type: "deposit"
- *                   screenShot: "base64-encoded-image-data"
+ *                 msg: "Notification sent successfully!"
  *       '400':
- *         description: Bad request, invalid input data.
+ *         description: Bad request, validation errors occurred.
  *         content:
  *           application/json:
  *             schema:
@@ -86,7 +70,7 @@ const Validator = require("../validators/transaction.validator");
  *               example:
  *                 statusCode: 400
  *                 status: "error"
- *                 msg: "Invalid input data."
+ *                 msg: "Validation failed. Missing required fields."
  *       '401':
  *         description: Unauthorized, invalid or missing token.
  *         content:
@@ -103,7 +87,7 @@ const Validator = require("../validators/transaction.validator");
  *               example:
  *                 statusCode: 401
  *                 status: "error"
- *                 msg: "Unauthorized, invalid or missing token."
+ *                 msg: "Unauthorized. Token is missing or invalid."
  *       '500':
  *         description: Internal server error.
  *         content:
@@ -125,35 +109,32 @@ const Validator = require("../validators/transaction.validator");
 
 router
   .route("/")
-  .post(Validator("validTransactionEntry"), verifyToken, createTransaction);
+  .post(
+    Validator("validSendNotification"),
+    verifyToken,
+    sendNotificationByAdmin
+  );
 
 /**
  * @swagger
- * /api/v1/transaction/admin-response:
- *   post:
- *     summary: Admin transaction response
- *     description: Allows an admin to respond to a transaction by verifying or rejecting it.
- *     tags: [Transactions]
+ * /api/v1/notification/{notificationId}:
+ *   delete:
+ *     summary: Delete a specific notification
+ *     description: Allows an admin or authorized user to delete a specific notification by its ID.
+ *     tags: [Notification]
  *     security:
  *       - BearerAuth: [] # Token-based authorization
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               transactionId:
- *                 type: string
- *                 description: The unique ID of the transaction.
- *                 example: "64f1c2e2ab3c2d1b7f9a8e1a"
- *               isVerified:
- *                 type: boolean
- *                 description: Indicates whether the transaction is verified or rejected.
- *                 example: true
+ *     parameters:
+ *       - in: path
+ *         name: notificationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The unique ID of the notification to delete.
+ *         example: "64f1c2e2ab3c2d1b7f9a8e1c"
  *     responses:
  *       '200':
- *         description: Transaction response successfully updated by admin.
+ *         description: Notification successfully deleted.
  *         content:
  *           application/json:
  *             schema:
@@ -168,9 +149,9 @@ router
  *               example:
  *                 statusCode: 200
  *                 status: "success"
- *                 msg: "Transaction response updated successfully."
+ *                 msg: "Notification deleted successfully!"
  *       '400':
- *         description: Bad request, invalid input data.
+ *         description: Bad request, invalid notification ID format.
  *         content:
  *           application/json:
  *             schema:
@@ -185,7 +166,7 @@ router
  *               example:
  *                 statusCode: 400
  *                 status: "error"
- *                 msg: "Invalid input data."
+ *                 msg: "Invalid notification ID format."
  *       '401':
  *         description: Unauthorized, invalid or missing token.
  *         content:
@@ -203,6 +184,23 @@ router
  *                 statusCode: 401
  *                 status: "error"
  *                 msg: "Unauthorized. Token is missing or invalid."
+ *       '404':
+ *         description: Notification not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 404
+ *                 status: "error"
+ *                 msg: "Notification not found."
  *       '500':
  *         description: Internal server error.
  *         content:
@@ -222,26 +220,36 @@ router
  *                 msg: "Internal server error."
  */
 
-router
-  .route("/admin-response")
-  .post(
-    Validator("validTransactionResponseByAdmin"),
-    verifyToken,
-    transactionResponse
-  );
+router.route("/:notificationId").delete(verifyToken, deleteNotification);
 
 /**
  * @swagger
- * /api/v1/transaction:
+ * /api/v1/notification:
  *   get:
- *     summary: Get all transactions
- *     description: Fetches a list of all transactions.
- *     tags: [Transactions]
+ *     summary: Get notifications
+ *     description: Fetches notifications. Use query parameters to fetch all notifications or notifications for a specific user.
+ *     tags: [Notification]
  *     security:
  *       - BearerAuth: [] # Token-based authorization
+ *     parameters:
+ *       - in: query
+ *         name: data
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [all, userId]
+ *         description: Use "all" to fetch all notifications, or provide a specific user ID to fetch notifications for that user.
+ *         example: "all"
+ *       - in: query
+ *         name: userId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: The user ID for which notifications should be fetched. Required only if `data` is set to `userId`.
+ *         example: "64f1c2e2ab3c2d1b7f9a8e1a"
  *     responses:
  *       '200':
- *         description: Transactions fetched successfully!
+ *         description: Notifications fetched successfully!
  *         content:
  *           application/json:
  *             schema:
@@ -256,31 +264,44 @@ router
  *                   items:
  *                     type: object
  *                     properties:
- *                       _id:
+ *                       id:
  *                         type: string
- *                         description: The unique ID of the transaction.
- *                       amount:
- *                         type: number
- *                         description: The transaction amount.
- *                       type:
+ *                       title:
  *                         type: string
- *                         description: Type of transaction (e.g., "debit" or "credit").
+ *                       message:
+ *                         type: string
  *                       createdAt:
  *                         type: string
  *                         format: date-time
- *                         description: The date and time when the transaction was created.
  *               example:
  *                 statusCode: 200
  *                 status: "success"
  *                 data:
  *                   - _id: "64f1c2e2ab3c2d1b7f9a8e1a"
- *                     amount: 1500
- *                     type: "credit"
+ *                     title: "System Update"
+ *                     message: "The system will undergo maintenance."
  *                     createdAt: "2024-06-10T14:12:00Z"
  *                   - _id: "64f1c2e2ab3c2d1b7f9a8e1b"
- *                     amount: 500
- *                     type: "debit"
+ *                     title: "Reminder"
+ *                     message: "Your subscription expires tomorrow."
  *                     createdAt: "2024-06-09T10:00:00Z"
+ *       '400':
+ *         description: Bad request, invalid input for query parameters.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 400
+ *                 status: "error"
+ *                 msg: "Invalid query parameter or user ID."
  *       '401':
  *         description: Unauthorized, invalid or missing token.
  *         content:
@@ -317,6 +338,6 @@ router
  *                 msg: "Internal server error."
  */
 
-router.route("/").get(verifyToken, getTransactions);
+router.route("/").get(verifyToken, getNotifications);
 
 module.exports = router;

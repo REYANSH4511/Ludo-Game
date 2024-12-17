@@ -29,4 +29,7 @@ exports.messageList = {
   M028: "referral amount percentage updated successfully!",
   M029: "Social Media Links fetched successfully!",
   M030: "Referral amount percentage fetched successfully!",
+  M031: "Notification sent successfully!",
+  M032: "Notification deleted successfully!",
+  M033: "Notification list fetched successfully!",
 };

@@ -1,7 +1,6 @@
 const fs = require("fs");
 const path = require("path");
 
-
 // Helper function to save file to disk
 const saveFile = (file, uploadDir) => {
   return new Promise((resolve, reject) => {

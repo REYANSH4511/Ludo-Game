@@ -418,7 +418,7 @@ router.route("/logout", verifyToken).get(logout);
 
 /**
  * @swagger
- * /api/v1/users/update-profile:
+ * /api/v1/users:
  *   post:
  *     summary: Update user profile
  *     description: Updates the profile information of the authenticated user.

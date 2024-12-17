@@ -7,7 +7,7 @@ const router = express.Router();
 /**
  * @swagger
  * /api/v1/admin/update-social-media-links:
- *   patch:
+ *   post:
  *     summary: Update social media links
  *     description: Allows an admin to update the social media links, such as WhatsApp, Facebook, Instagram, and Telegram.
  *     tags: [Admin/settings]
@@ -107,7 +107,7 @@ const router = express.Router();
 
 router
   .route("/update-social-media-links")
-  .patch(
+  .post(
     Validator("validSocialMediaLinks"),
     verifyToken,
     updateSocialMediaLinks
@@ -116,7 +116,7 @@ router
 /**
  * @swagger
  * /api/v1/admin/upadate-referral-amount-percentage:
- *   patch:
+ *   post:
  *     summary: Update referral amount percentage
  *     description: Allows an admin to update the referral amount percentage.
  *     tags: [Admin/settings]
@@ -204,7 +204,7 @@ router
 
 router
   .route("/upadate-referral-amount-percentage")
-  .patch(
+  .post(
     Validator("validUpdateReferralAmountPercentage"),
     verifyToken,
     updateSocialMediaLinks

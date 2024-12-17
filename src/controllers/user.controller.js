@@ -9,6 +9,10 @@ const crypto = require("crypto");
 const { uploadFiles } = require("../utils/upload");
 const Transaction = require("../models/transaction.model");
 const Settings = require("../models/settings.model");
+const {
+  welComeNotification,
+  sendReferralNotification,
+} = require("../utils/notificationHelper");
 //user generate otp
 exports.generateOTP = async (req, res) => {
   const { mobileNo } = req.body;
@@ -20,15 +24,16 @@ exports.generateOTP = async (req, res) => {
     if (!userData) {
       userData = await User.create({ mobileNo });
     }
-
     await OTP.findOneAndUpdate(
       { mobileNo },
       { otp, expiresAt },
       { upsert: true, new: true }
     );
+    const user = await User.findOne({ mobileNo });
 
     return successHandler({
       res,
+      data: { isCouponApplied: user.referedBy ? true : false },
       statusCode: 200,
       message: getMessage("M001"),
     });
@@ -78,15 +83,27 @@ exports.verifyOTP = async (req, res) => {
     }
     await OTP.deleteOne({ mobileNo });
     const user = await User.findOne({ mobileNo });
-    const authResponse = await createAuthResponse(user, res);
-    if (referalCode) {
+
+    const authResponse = createAuthResponse(user, res);
+    if (referalCode && !user.referedBy) {
       const referalUser = await User.findOne({ referalCode });
-      if (referalUser) {
-        await User.updateOne(
-          { mobileNo },
-          { $set: { referedBy: referalUser._id } }
-        );
-      }
+      if (!referalUser)
+        return errorHandler({
+          res,
+          statusCode: 404,
+          message: getMessage("M021"),
+        });
+
+      await User.updateOne(
+        { mobileNo },
+        { $set: { referedBy: referalUser._id } }
+      );
+
+      sendReferralNotification(referalUser._id, mobileNo);
+    }
+    if (!user.isVerified) {
+      await User.updateOne({ mobileNo }, { $set: { isVerified: true } });
+      await welComeNotification(user._id);
     }
     return successHandler({
       res,
