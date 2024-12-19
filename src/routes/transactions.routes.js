@@ -6,12 +6,11 @@ const {
   getTransactions,
   transactionResponse,
 } = require("../controllers/transaction.conroller");
-const { route } = require("./user.routes");
 const Validator = require("../validators/transaction.validator");
 
 /**
  * @swagger
- * /api/v1/transactions:
+ * /api/v1/transaction:
  *   post:
  *     summary: Create a new transaction
  *     description: Allows the user to create a transaction, either a deposit or a withdrawal.

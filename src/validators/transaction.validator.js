@@ -9,16 +9,40 @@ const bankAccountDetailsSchema = Joi.object({
 
 const userDetailsSchema = Joi.object({
   name: Joi.string().required(),
-  mobileNo: Joi.string().required(),
+  mobileNo: Joi.string()
+    .pattern(/^[0-9]{10}$/)
+    .required()
+    .messages({
+      "string.pattern.base": "Mobile number should be of 10 digits.",
+      "any.required": "Mobile number is required.",
+    }),
 });
 
 const Validators = {
   validTransactionEntry: Joi.object({
-    userDetails: userDetailsSchema.required(),
+    userDetails: Joi.when("type", {
+      is: "withdraw",
+      then: userDetailsSchema.required().messages({
+        "any.required": "User details are required when type is 'withdraw'.",
+      }),
+      otherwise: Joi.optional(),
+    }),
     type: Joi.string().valid("deposit", "withdraw").required(),
-    utrNo: Joi.string(),
+    utrNo: Joi.when("type", {
+      is: "deposit",
+      then: Joi.string().required().messages({
+        "any.required": "UTR No is required when type is 'deposit'.",
+      }),
+      otherwise: Joi.optional(),
+    }),
     amount: Joi.number().positive().required(),
-    paymentMethod: Joi.string().valid("upi", "bankAccount").required(),
+    paymentMethod: Joi.when("type", {
+      is: "withdraw",
+      then: Joi.string().valid("upi", "bankAccount").required().messages({
+        "any.required": "Payment method is required when type is 'withdraw'.",
+      }),
+      otherwise: Joi.optional(),
+    }),
     upiId: Joi.when("paymentMethod", {
       is: "upi",
       then: Joi.string().required().messages({
@@ -36,6 +60,7 @@ const Validators = {
     }),
     screenShot: Joi.string().optional(),
   }),
+
   validTransactionResponseByAdmin: Joi.object({
     transactionId: Joi.string().required(),
     isApproved: Joi.boolean().required(),

@@ -1,4 +1,5 @@
 const Transaction = require("../models/transaction.model");
+const User = require("../models/user.model");
 const getMessage = require("../utils/message");
 const { successHandler, errorHandler } = require("../utils/responseHandler");
 
@@ -50,25 +51,13 @@ exports.createTransaction = async (req, res) => {
 exports.getTransactions = async (req, res) => {
   try {
     const { _id, role } = req.user;
-    const filter = {};
+    const filter = { isReferral: false };
     if (role === "user") {
       filter.userId = _id;
     }
     const transactionList = await Transaction.find(filter);
-    const totalAmount = transactionList.reduce((acc, curr) => {
-      if (curr.status === "approved") {
-        return (
-          acc +
-          (curr.type === "deposit"
-            ? curr.amount
-            : curr.type === "withdraw"
-            ? -curr.amount
-            : 0)
-        );
-      }
-      return acc;
-    }, 0);
-    const data = { transactionList, totalAmount };
+    const user = await User.findOne({ _id }, { balance: 1 });
+    const data = { transactionList, totalBalance: user?.balance?.totalBalance };
     return successHandler({
       res,
       statusCode: 200,
@@ -98,12 +87,31 @@ exports.transactionResponse = async (req, res) => {
     }
     const message = isApproved ? "M018" : "M019";
     const isApprovedKey = isApproved ? "approved" : "rejected";
-
+    const transactionDetails = await Transaction.findOne({
+      _id: transactionId,
+      status: "pending",
+    });
+    if (!transactionDetails) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M045"),
+      });
+    }
     const data = await Transaction.findOneAndUpdate(
       { _id: transactionId },
       { status: isApprovedKey, approvedBy: _id },
       { new: true }
     );
+
+    if (isApproved) {
+      const user = await User.findOne({ _id: data?.userId });
+      user.balance.totalBalance =
+        data.type === "deposit"
+          ? user.balance.totalBalance + data.amount
+          : user.balance.totalBalance - data.amount;
+      await user.save();
+    }
 
     return successHandler({
       res,

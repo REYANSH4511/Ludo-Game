@@ -85,13 +85,18 @@ exports.verifyOTP = async (req, res) => {
 
     const authResponse = createAuthResponse(user, res);
     if (referalCode && !user.referedBy) {
-      const referalUser = await User.findOne({ referalCode });
+      const referalUser = await User.findOne({
+        referalCode,
+        mobileNo: { $ne: mobileNo },
+      });
       if (!referalUser)
         return errorHandler({
           res,
           statusCode: 404,
-          message: getMessage("M021"),
+          message: getMessage("M046"),
         });
+      referalUser.referredUsers.push({ userId: user._id });
+      referalUser.save();
 
       await User.updateOne(
         { mobileNo },

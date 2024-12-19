@@ -46,6 +46,19 @@ const balanceSchema = new Schema({
     default: 0,
   },
 });
+
+const referredUserSchema = new Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  referralEarning: {
+    type: Number,
+    default: 0,
+  },
+});
+
 const userSchema = new Schema(
   {
     name: {
@@ -104,6 +117,7 @@ const userSchema = new Schema(
       type: balanceSchema,
       default: () => ({}),
     },
+    referredUsers: [referredUserSchema],
   },
   {
     timestamps: true,
