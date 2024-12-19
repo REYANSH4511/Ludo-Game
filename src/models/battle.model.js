@@ -1,7 +1,7 @@
 const { Schema, model } = require("mongoose");
 
 const resultSchema = new Schema({
-  acceptedUser:{
+  acceptedUser: {
     matchStatus: {
       type: String,
       enum: ["WON", "LOSS", "CANCELLED"],
@@ -10,7 +10,7 @@ const resultSchema = new Schema({
       type: String,
     },
   },
-  createdUser:{
+  createdUser: {
     matchStatus: {
       type: String,
       enum: ["WON", "LOSS", "CANCELLED"],
@@ -18,8 +18,8 @@ const resultSchema = new Schema({
     screenShot: {
       type: String,
     },
-  }
-})
+  },
+});
 
 const battleSchema = new Schema(
   {
@@ -69,8 +69,7 @@ const battleSchema = new Schema(
       ref: "User",
     },
 
-    
-    resultUpatedBy:resultSchema
+    resultUpatedBy: resultSchema,
   },
   {
     timestamps: true,

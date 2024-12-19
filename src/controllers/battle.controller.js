@@ -334,5 +334,34 @@ exports.battleListAdmin = async (req, res) => {
   }
 };
 
-
 // update final result
+exports.updateBattleResultByUser = async (req, res) => {
+  try {
+    const { _id, role } = req.user;
+    if (role !== "user") {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M015"),
+      });
+    }
+
+    const { battleId, matchResult, screenShot } = req.body;
+    const battleDetails = await Battle.findOne({ _id: battleId });
+    if (!battleDetails) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M041"),
+      });
+    }
+  
+
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};

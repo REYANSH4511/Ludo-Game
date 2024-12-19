@@ -21,12 +21,24 @@ exports.createTransaction = async (req, res) => {
     const payload = { userId: _id, amount, type, userDetails };
 
     if (type === "withdraw") {
+      const user = await User.findOne({ _id }, { balance: 1 });
+
+      if (user?.balance?.totalBalance < amount) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M047"),
+        });
+      }
+
       payload.paymentMethod = paymentMethod;
       if (paymentMethod === "upi") {
         payload.upiId = upiId;
       } else if (paymentMethod === "bankAccount") {
         payload.bankAccountDetails = bankAccountDetails;
       }
+      user.balance.totalBalance -= amount;
+      await user.save();
     } else {
       payload.utrNo = utrNo;
       payload.screenShot = screenShot;
@@ -57,7 +69,11 @@ exports.getTransactions = async (req, res) => {
     }
     const transactionList = await Transaction.find(filter);
     const user = await User.findOne({ _id }, { balance: 1 });
-    const data = { transactionList, totalBalance: user?.balance?.totalBalance };
+    let totalBalance = 0;
+    if (role === "user") {
+      totalBalance = user?.balance?.totalBalance;
+    }
+    const data = { transactionList, totalBalance };
     return successHandler({
       res,
       statusCode: 200,
@@ -104,15 +120,16 @@ exports.transactionResponse = async (req, res) => {
       { new: true }
     );
 
-    if (isApproved) {
-      const user = await User.findOne({ _id: data?.userId });
-      user.balance.totalBalance =
-        data.type === "deposit"
-          ? user.balance.totalBalance + data.amount
-          : user.balance.totalBalance - data.amount;
-      await user.save();
-    }
+    const user = await User.findOne({ _id: data?.userId });
 
+    if (isApproved) {
+      user.balance.totalBalance =
+        data.type === "deposit" && user.balance.totalBalance + data.amount;
+    } else {
+      user.balance.totalBalance =
+        data.type === "withdraw" && user.balance.totalBalance + data.amount;
+    }
+    await user.save();
     return successHandler({
       res,
       statusCode: 200,
