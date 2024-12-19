@@ -96,8 +96,14 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    kycDocument: kycDocumentSchema,
-    balance: balanceSchema,
+    kycDocument: {
+      type: kycDocumentSchema,
+      default: () => ({}),
+    },
+    balance: {
+      type: balanceSchema,
+      default: () => ({}),
+    },
   },
   {
     timestamps: true,

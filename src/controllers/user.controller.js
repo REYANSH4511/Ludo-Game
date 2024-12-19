@@ -438,7 +438,7 @@ exports.uploadKYCDocument = async (req, res) => {
 exports.userDashboard = async (req, res) => {
   try {
     const { _id } = req.user;
-    const user = await User.findOne({ _id }, { balance: 1 });
+    const user = await User.findOne({ _id });
     if (!user) {
       return errorHandler({
         res,
