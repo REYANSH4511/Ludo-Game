@@ -438,7 +438,7 @@ exports.uploadKYCDocument = async (req, res) => {
 exports.userDashboard = async (req, res) => {
   try {
     const { _id } = req.user;
-    const user = await User.findOne({ _id }, { referralAmount: 1 });
+    const user = await User.findOne({ _id }, { balance: 1 });
     if (!user) {
       return errorHandler({
         res,
@@ -446,27 +446,9 @@ exports.userDashboard = async (req, res) => {
         message: getMessage("M002"),
       });
     }
-    const transactions = await Transaction.find({ userId: _id });
-    const totalAmount = transactions.reduce((acc, curr) => {
-      if (curr.status === "approved") {
-        return (
-          acc +
-          (curr.type === "deposit"
-            ? curr.amount
-            : curr.type === "withdraw"
-            ? -curr.amount
-            : 0)
-        );
-      }
-      return acc;
-    }, 0);
-    const data = {
-      totalAmount,
-      referralAmount: user.referralAmount,
-    };
     return successHandler({
       res,
-      data: data,
+      data: user?.balance,
       statusCode: 200,
       message: getMessage("M025"),
     });
