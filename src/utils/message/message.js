@@ -32,4 +32,15 @@ exports.messageList = {
   M031: "Notification sent successfully!",
   M032: "Notification deleted successfully!",
   M033: "Notification list fetched successfully!",
+  M034: "Battle created successfully!",
+  M035: "Battle list fetched successfully!",
+  M036: "Already playing a battle!",
+  M037: "Room details entered successfully!",
+  M038: "Battle accepted successfully!",
+  M039: "Battle rejected successfully!",
+  M040: "Battle details fetched successfully!",
+  M041: "Battle details not found!",
+  M042: "Battle details updated successfully!",
+  M043: "Insufficient balance!",
+  M044: "Battle deleted successfully!"
 };

@@ -49,8 +49,11 @@ const transactionSchema = new Schema(
     },
     paymentMethod: {
       type: String,
-      required: true,
       enum: ["upi", "bankAccount"],
+    },
+    isBattleTransaction: {
+      type: Boolean,
+      default: false,
     },
     upiId: {
       type: String,

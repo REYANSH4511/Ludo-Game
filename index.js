@@ -9,6 +9,7 @@ const userRouter = require("./src/routes/user.routes");
 const transactionRouter = require("./src/routes/transactions.routes");
 const settingsRouter = require("./src/routes/settings.routes");
 const notificationRouter = require("./src/routes/notification.routes");
+const battleRouter = require("./src/routes/battle.routes");
 const specs = require("./src/docs/swagger");
 const PORT = process.env.PORT || 8000;
 const swaggerUi = require("swagger-ui-express");
@@ -19,6 +20,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/transaction", transactionRouter);
 app.use("/api/v1/admin", settingsRouter);
 app.use("/api/v1/notification", notificationRouter);
+app.use("/api/v1/battle", battleRouter);
 
 app.get("/", (req, res) => {
   res.send("server is running");

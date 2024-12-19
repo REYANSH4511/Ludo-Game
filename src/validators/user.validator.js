@@ -44,12 +44,10 @@ const Validators = {
       }),
   }),
   validUploadKYCDocument: Joi.object({
-    kycDocument: Joi.object({
-      name: Joi.string().required(),
-      frontPhoto: Joi.string().required(),
-      backPhoto: Joi.string().required(),
-      aadharNumber: Joi.string().required(),
-    }),
+    name: Joi.string().required(),
+    frontPhoto: Joi.string().required(),
+    backPhoto: Joi.string().required(),
+    aadharNumber: Joi.string().required(),
   }),
   validLogin: Joi.object({
     email: Joi.string().email().required(),

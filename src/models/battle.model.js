@@ -1,5 +1,26 @@
 const { Schema, model } = require("mongoose");
 
+const resultSchema = new Schema({
+  acceptedUser:{
+    matchStatus: {
+      type: String,
+      enum: ["WON", "LOSS", "CANCELLED"],
+    },
+    screenShot: {
+      type: String,
+    },
+  },
+  createdUser:{
+    matchStatus: {
+      type: String,
+      enum: ["WON", "LOSS", "CANCELLED"],
+    },
+    screenShot: {
+      type: String,
+    },
+  }
+})
+
 const battleSchema = new Schema(
   {
     createdBy: {
@@ -47,6 +68,9 @@ const battleSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "User",
     },
+
+    
+    resultUpatedBy:resultSchema
   },
   {
     timestamps: true,
