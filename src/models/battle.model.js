@@ -29,6 +29,7 @@ const battleSchema = new Schema(
     },
     roomNo: {
       type: String,
+      default: null,
     },
     status: {
       type: String,
@@ -45,6 +46,7 @@ const battleSchema = new Schema(
     acceptedBy: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      default: null,
     },
     matchStatus: {
       type: String,
@@ -59,10 +61,12 @@ const battleSchema = new Schema(
     winner: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      default: null,
     },
     loser: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      default: null,
     },
 
     resultUpatedBy: resultSchema,

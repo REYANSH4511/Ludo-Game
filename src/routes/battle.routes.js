@@ -9,6 +9,8 @@ const {
   enterRoomNumber,
   updateBattleResultByUser,
   updateBattleResultByAdmin,
+  battleHistory,
+  battleDetails,
 } = require("../controllers/battle.controller");
 const Validator = require("../validators/battle.validator");
 const router = express.Router();
@@ -39,6 +41,9 @@ router
     verifyToken,
     updateBattleResultByUser
   );
+
+router.route("/game-history").get(verifyToken, battleHistory);
+
 router
   .route("/update-battle-result-by-admin")
   .post(
@@ -51,6 +56,6 @@ router
   .route("/send-creater-accept-request/:battleId")
   .get(verifyToken, sendCreaterAcceptRequest);
 
-router.route("/details/:battleId").get(verifyToken, enterRoomNumber);
+router.route("/details/:battleId").get(verifyToken, battleDetails);
 
 module.exports = router;

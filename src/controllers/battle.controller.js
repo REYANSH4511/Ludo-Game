@@ -3,7 +3,10 @@ const Battle = require("../models/battle.model");
 const getMessage = require("../utils/message");
 const { errorHandler, successHandler } = require("../utils/responseHandler");
 const User = require("../models/user.model");
-const { updateTransactionForStartingGame } = require("../utils/battleHelper");
+const {
+  updateTransactionForStartingGame,
+  updateWinningAmountForWinner,
+} = require("../utils/battleHelper");
 
 // create battle
 exports.createBattle = async (req, res) => {
@@ -95,7 +98,6 @@ exports.deleteBattle = async (req, res) => {
 // battles list
 exports.battlesListForAllUser = async (req, res) => {
   try {
-    
     const { _id, role } = req.user;
     if (!role === "user")
       return errorHandler({
@@ -103,6 +105,7 @@ exports.battlesListForAllUser = async (req, res) => {
         statusCode: 400,
         message: getMessage("M015"),
       });
+
     const battles = await Battle.find(
       {
         $or: [{ status: "PLAYING" }, { status: "OPEN" }],
@@ -125,7 +128,6 @@ exports.battlesListForAllUser = async (req, res) => {
       message: getMessage("M035"),
       data: { openBattles, liveBattles },
     });
-
   } catch (err) {
     return errorHandler({
       res,
@@ -445,15 +447,59 @@ exports.updateBattleResultByAdmin = async (req, res) => {
     battleDetails.winner = winner;
     battleDetails.loser = loser;
     battleDetails.status = "CLOSED";
-
+    battleDetails.paymentStatus = "COMPLETED";
+    await updateWinningAmountForWinner(battleDetails);
     await battleDetails.save();
-    
+
     return successHandler({
       res,
       statusCode: 200,
       message: getMessage("M047"),
     });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
 
+// battle list for user
+exports.battleHistory = async (req, res) => {
+  try {
+    const { _id, role } = req.user;
+    if (!role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M015"),
+      });
+    }
+    const battleList = await Battle.find({
+      $or: [{ acceptedBy: _id }, { createdBy: _id }],
+    })
+      .populate("acceptedBy createdBy", { _id: 1, name: 1 })
+      .sort({ createdAt: -1 });
+    const updatedBattleList = battleList.map((item) => ({
+      ...item.toObject(),
+      winStatus: item?.winner
+        ? item?.winner?._id.toString() === _id.toString()
+          ? "WIN"
+          : "LOSE"
+        : "PENDING",
+
+      againstUser:
+        _id.toString() === item?.createdBy?._id?.toString()
+          ? item?.acceptedBy
+          : item?.createdBy,
+    }));
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: getMessage("M035"),
+      data: updatedBattleList,
+    });
   } catch (err) {
     return errorHandler({
       res,
