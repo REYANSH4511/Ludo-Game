@@ -166,7 +166,7 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
       {
         _id: battleId,
         status: "OPEN",
-        createdBy: { $ne: mongoose.Types.ObjectId(_id) },
+        createdBy: { $ne: _id },
       },
       { acceptedBy: _id },
       { new: true }
