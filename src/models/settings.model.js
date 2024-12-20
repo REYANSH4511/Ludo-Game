@@ -27,6 +27,16 @@ const settingsSchema = new Schema(
       required: true,
       default: 2,
     },
+    upiId: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+    upiQrCode: {
+      type: String,
+      trim: true,
+      required: true,
+    },
   },
   {
     timestamps: true,

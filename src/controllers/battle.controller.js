@@ -95,6 +95,7 @@ exports.deleteBattle = async (req, res) => {
 // battles list
 exports.battlesListForAllUser = async (req, res) => {
   try {
+    
     const { _id, role } = req.user;
     if (!role === "user")
       return errorHandler({
@@ -117,12 +118,14 @@ exports.battlesListForAllUser = async (req, res) => {
     ).sort({ createdAt: -1 });
     const openBattles = battles.filter((battle) => battle.status === "OPEN");
     const liveBattles = battles.filter((battle) => battle.status === "PLAYING");
+
     return successHandler({
       res,
       statusCode: 200,
       message: getMessage("M035"),
       data: { openBattles, liveBattles },
     });
+
   } catch (err) {
     return errorHandler({
       res,
@@ -241,8 +244,11 @@ exports.enterRoomNumber = async (req, res) => {
         message: getMessage("M015"),
       });
     }
+    const { roomNumber, battleId } = req.body;
+
     const checkCorrectUser = await Battle.findOne({
       createdBy: _id,
+      _id: battleId,
     });
     if (!checkCorrectUser) {
       return errorHandler({
@@ -251,9 +257,8 @@ exports.enterRoomNumber = async (req, res) => {
         message: getMessage("M015"),
       });
     }
-    const { roomNumber } = req.body;
     await Battle.findOneAndUpdate(
-      { createdBy: _id, status: "OPEN" },
+      { createdBy: _id, _id: battleId, status: "OPEN" },
       { roomNo: roomNumber },
       { new: true }
     );
@@ -346,8 +351,9 @@ exports.updateBattleResultByUser = async (req, res) => {
       });
     }
 
-    const { battleId, matchResult, screenShot } = req.body;
-    const battleDetails = await Battle.findOne({ _id: battleId });
+    const { battleId, matchStatus, screenShot } = req.body;
+    const battleDetails = await Battle.findById(battleId);
+
     if (!battleDetails) {
       return errorHandler({
         res,
@@ -355,7 +361,98 @@ exports.updateBattleResultByUser = async (req, res) => {
         message: getMessage("M041"),
       });
     }
-  
+    if (battleDetails?.matchStatus !== "PLAYING") {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M048"),
+      });
+    }
+    const isAcceptedUser =
+      battleDetails.acceptedBy.toString() === _id.toString();
+    const isCreatedUser = battleDetails.createdBy.toString() === _id.toString();
+
+    if (!isAcceptedUser && !isCreatedUser) {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
+
+    const userKey = isAcceptedUser ? "acceptedUser" : "createdUser";
+
+    if (battleDetails.resultUpatedBy[userKey]?.matchStatus) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M048"),
+      });
+    }
+
+    // Update match result for the user
+    battleDetails.resultUpatedBy[userKey] = { matchStatus, screenShot };
+
+    await battleDetails.save();
+
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: getMessage("M047"),
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
+
+// update final result by admin
+exports.updateBattleResultByAdmin = async (req, res) => {
+  try {
+    const { _id, role } = req.user;
+    if (role !== "admin") {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M015"),
+      });
+    }
+
+    const { battleId, winner, loser } = req.body;
+    const battleDetails = await Battle.findById(battleId);
+
+    if (!battleDetails) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M041"),
+      });
+    }
+
+    if (battleDetails?.matchStatus !== "PLAYING") {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M048"),
+      });
+    }
+
+    // Update match result for the user
+    battleDetails.matchStatus = "COMPLETED";
+    battleDetails.winner = winner;
+    battleDetails.loser = loser;
+    battleDetails.status = "CLOSED";
+
+    await battleDetails.save();
+    
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: getMessage("M047"),
+    });
 
   } catch (err) {
     return errorHandler({

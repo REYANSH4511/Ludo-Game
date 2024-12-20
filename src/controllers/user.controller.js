@@ -66,7 +66,6 @@ exports.verifyOTP = async (req, res) => {
       });
     }
     if (dayjs().isAfter(OTPRecord.expiresAt)) {
-      await OTP.deleteOne({ mobileNo });
       return errorHandler({
         res,
         statusCode: 400,
@@ -80,7 +79,6 @@ exports.verifyOTP = async (req, res) => {
         message: getMessage("M003"),
       });
     }
-    await OTP.deleteOne({ mobileNo });
     const user = await User.findOne({ mobileNo });
 
     const authResponse = createAuthResponse(user, res);
@@ -109,6 +107,7 @@ exports.verifyOTP = async (req, res) => {
       await User.updateOne({ mobileNo }, { $set: { isVerified: true } });
       await welComeNotification(user._id);
     }
+    await OTP.deleteOne({ mobileNo });
     return successHandler({
       res,
       data: authResponse,

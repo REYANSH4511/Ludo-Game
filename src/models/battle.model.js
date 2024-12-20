@@ -29,7 +29,6 @@ const battleSchema = new Schema(
     },
     roomNo: {
       type: String,
-      required: true,
     },
     status: {
       type: String,
@@ -49,11 +48,8 @@ const battleSchema = new Schema(
     },
     matchStatus: {
       type: String,
-      enum: ["WON", "LOSS", "CANCELLED", "PENDING"],
+      enum: ["COMPLETED", "PENDING"],
       default: "PENDING",
-    },
-    screenShot: {
-      type: String,
     },
     paymentStatus: {
       type: String,

@@ -16,7 +16,7 @@ const createAuthResponse = (user, res) => {
   // Set tokens in cookies
   res.cookie("authToken", token, {
     httpOnly: true,
-    maxAge: 15 * 60 * 1000, // 15 minutes in milliseconds
+    maxAge: 25 * 24 * 60 * 60 * 1000, // 25 days in milliseconds
     secure: process.env.NODE_ENV === "production",
   });
 

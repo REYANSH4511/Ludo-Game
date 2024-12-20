@@ -45,5 +45,6 @@ exports.messageList = {
   M044: "Battle deleted successfully!",
   M045: "Transaction not found!",
   M046: "Referral code invalid!",
-  M047: "Invalid transaction!",
+  M047: "Battle Status updated successfully!",
+  M048: "Battle Status already updated!",
 };

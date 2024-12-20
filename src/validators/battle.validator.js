@@ -2,10 +2,26 @@ const Joi = require("joi");
 const { errorHandler } = require("../utils/responseHandler");
 
 const Validators = {
-  validSendNotification: Joi.object({
-    title: Joi.string().required(),
-    message: Joi.string().required(),
-    userId: Joi.string().required(),
+  validCreateBattle: Joi.object({
+    amount: Joi.string().required(),
+  }),
+  validAcceptOrRejectRequestByCreater: Joi.object({
+    battleId: Joi.string().required(),
+    status: Joi.string().valid("accept", "reject").required(),
+  }),
+  validEnterRoomNumber: Joi.object({
+    battleId: Joi.string().required(),
+    roomNumber: Joi.string().required(),
+  }),
+  ValidUpdateBattleResultByUser: Joi.object({
+    battleId: Joi.string().required(),
+    matchStatus: Joi.string().valid("WON", "LOSS", "CANCELLED").required(),
+    screenShot: Joi.string(),
+  }),
+  ValidUpdateBattleResultByAdmin: Joi.object({
+    battleId: Joi.string().required(),
+    winner: Joi.string().required(),
+    loser: Joi.string().required(),
   }),
 };
 
