@@ -16,6 +16,7 @@ const Validators = {
   ValidUpdateBattleResultByUser: Joi.object({
     battleId: Joi.string().required(),
     matchStatus: Joi.string().valid("WON", "LOSS", "CANCELLED").required(),
+    cancellationReason: Joi.string(),
     screenShot: Joi.string(),
   }),
   ValidUpdateBattleResultByAdmin: Joi.object({

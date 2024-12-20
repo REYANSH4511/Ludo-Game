@@ -9,6 +9,9 @@ const resultSchema = new Schema({
     screenShot: {
       type: String,
     },
+    cancellationReason: {
+      type: String,
+    },
   },
   createdUser: {
     matchStatus: {
@@ -16,6 +19,9 @@ const resultSchema = new Schema({
       enum: ["WON", "LOSS", "CANCELLED"],
     },
     screenShot: {
+      type: String,
+    },
+    cancellationReason: {
       type: String,
     },
   },

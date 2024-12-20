@@ -353,7 +353,7 @@ exports.updateBattleResultByUser = async (req, res) => {
       });
     }
 
-    const { battleId, matchStatus, screenShot } = req.body;
+    const { battleId, matchStatus, screenShot, cancellationReason } = req.body;
     const battleDetails = await Battle.findById(battleId);
 
     if (!battleDetails) {
@@ -393,7 +393,11 @@ exports.updateBattleResultByUser = async (req, res) => {
     }
 
     // Update match result for the user
-    battleDetails.resultUpatedBy[userKey] = { matchStatus, screenShot };
+    let updatedMatchResult = { matchStatus, screenShot };
+    if (cancellationReason) {
+      updatedMatchResult.cancellationReason = cancellationReason;
+    }
+    battleDetails.resultUpatedBy[userKey] = updatedMatchResult;
 
     await battleDetails.save();
 

@@ -620,6 +620,10 @@ router
  *                 description: The status of the match (WON, LOSS, or CANCELLED).
  *                 example: "WON"
  *                 enum: ["WON", "LOSS", "CANCELLED"]
+ *               cancellationReason:
+ *                 type: string
+ *                 description: Cancellation reason if the match is cancelled.
+ *                 example: "others"
  *               screenShot:
  *                 type: string
  *                 description: A URL or base64 encoded string of the screenshot if applicable.
