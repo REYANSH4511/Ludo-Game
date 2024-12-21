@@ -532,7 +532,11 @@ exports.getReferralHistory = async (req, res) => {
     const data = await User.findOne(
       { _id },
       { referredUsers: 1, _id: 0 }
-    ).populate("referredUsers.userId", { name: 1, createdAt: 1 ,referalCode:1});
+    ).populate("referredUsers.userId", {
+      name: 1,
+      createdAt: 1,
+      referalCode: 1,
+    });
 
     return successHandler({
       res,

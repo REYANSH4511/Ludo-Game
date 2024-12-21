@@ -118,7 +118,9 @@ exports.battlesListForAllUser = async (req, res) => {
         createdBy: 1,
         status: 1,
       }
-    ).sort({ createdAt: -1 });
+    )
+      .populate("acceptedBy createdBy", { _id: 1, name: 1 })
+      .sort({ createdAt: -1 });
     const openBattles = battles.filter((battle) => battle.status === "OPEN");
     const liveBattles = battles.filter((battle) => battle.status === "PLAYING");
 
