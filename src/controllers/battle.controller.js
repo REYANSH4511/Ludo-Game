@@ -121,7 +121,19 @@ exports.battlesListForAllUser = async (req, res) => {
     )
       .populate("acceptedBy createdBy", { _id: 1, name: 1 })
       .sort({ createdAt: -1 });
-    const openBattles = battles.filter((battle) => battle.status === "OPEN");
+    const openBattles = battles
+      .filter((battle) => battle.status === "OPEN")
+      .map((battle) => {
+        let showButton = "";
+
+        if (battle.createdBy === _id) {
+          showButton = !battle.acceptedBy ? "delete" : "accept";
+        } else {
+          showButton = !battle.acceptedBy ? "play" : "waiting";
+        }
+
+        return { ...battle, showButton };
+      });
     const liveBattles = battles.filter((battle) => battle.status === "PLAYING");
 
     return successHandler({
