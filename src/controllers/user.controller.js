@@ -506,3 +506,21 @@ exports.getReferralAmountPercentage = async (req, res) => {
     return errorHandler({ res, statusCode: 500, message: err.message });
   }
 };
+
+exports.getAdminUPIDetails = async (req, res) => {
+  try {
+    const data = await Settings.findOne(
+      {},
+      { upiId: 1, upiQrCode: 1, _id: 0, __v: 0 }
+    );
+
+    return successHandler({
+      res,
+      data: data,
+      statusCode: 200,
+      message: getMessage("M051"),
+    });
+  } catch (err) {
+    return errorHandler({ res, statusCode: 500, message: err.message });
+  }
+};

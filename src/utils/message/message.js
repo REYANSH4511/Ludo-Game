@@ -49,4 +49,5 @@ exports.messageList = {
   M048: "Battle Status already updated!",
   M049: "User KYC approved successfully!",
   M050: "Payment settings updated successfully!",
+  M051: "Admin upi accounts details fetched successfully!",
 };

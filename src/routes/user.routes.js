@@ -12,6 +12,7 @@ const {
   updateProfile,
   getReferralAmountPercentage,
   getSocialMediaLinks,
+  getAdminUPIDetails,
 } = require("../controllers/user.controller.js");
 const { verifyToken } = require("../utils/authHelper.js");
 const Validators = require("../validators/user.validator.js");
@@ -874,6 +875,97 @@ router.route("/get-social-media-links").get(verifyToken, getSocialMediaLinks);
 router
   .route("/get-referral-amount-percentage")
   .get(verifyToken, getReferralAmountPercentage);
+
+/**
+ * @swagger
+ * /api/v1/admin/get-admin-upi:
+ *   get:
+ *     summary: Get admin UPI details
+ *     description: Retrieves the admin's UPI details, including UPI QR code and UPI ID.
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Admin UPI details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     upiQrCode:
+ *                       type: string
+ *                       description: Base64 encoded UPI QR code image.
+ *                     upiId:
+ *                       type: string
+ *                       description: Admin's UPI ID.
+ *               example:
+ *                 statusCode: 200
+ *                 status: "success"
+ *                 data:
+ *                   upiQrCode: "data:image/png;base64,example_qr_code_base64"
+ *                   upiId: "example@upi"
+ *       '401':
+ *         description: Unauthorized, invalid or missing token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized, invalid or missing token."
+ *       '404':
+ *         description: UPI details not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 404
+ *                 status: "error"
+ *                 msg: "UPI details not found."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
+
+router.route("/get-admin-upi").get(verifyToken, getAdminUPIDetails);
 
 /**
  * @swagger
