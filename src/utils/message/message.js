@@ -47,4 +47,6 @@ exports.messageList = {
   M046: "Referral code invalid!",
   M047: "Battle Status updated successfully!",
   M048: "Battle Status already updated!",
+  M049: "User KYC approved successfully!",
+  M050: "Payment settings updated successfully!",
 };

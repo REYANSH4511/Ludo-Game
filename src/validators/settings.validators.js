@@ -11,6 +11,10 @@ const Validators = {
   validUpdateReferralAmountPercentage: Joi.object({
     referralAmountPercentage: Joi.number(),
   }),
+  validUpdatePaymentSettings: Joi.object({
+    upiQrCode: Joi.string().required(),
+    upiId: Joi.string().required(),
+  }),
 };
 
 module.exports = Validators;
