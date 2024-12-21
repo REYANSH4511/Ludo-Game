@@ -506,7 +506,7 @@ exports.getReferralAmountPercentage = async (req, res) => {
     return errorHandler({ res, statusCode: 500, message: err.message });
   }
 };
-
+// get admin upi details
 exports.getAdminUPIDetails = async (req, res) => {
   try {
     const data = await Settings.findOne(
@@ -519,6 +519,26 @@ exports.getAdminUPIDetails = async (req, res) => {
       data: data,
       statusCode: 200,
       message: getMessage("M051"),
+    });
+  } catch (err) {
+    return errorHandler({ res, statusCode: 500, message: err.message });
+  }
+};
+
+// get referral history data
+exports.getReferralHistory = async (req, res) => {
+  try {
+    const { _id } = req.user;
+    const data = await User.findOne(
+      { _id },
+      { referredUsers: 1, _id: 0 }
+    ).populate("referredUsers.userId", { name: 1, createdAt: 1 ,referalCode:1});
+
+    return successHandler({
+      res,
+      data: data?.referredUsers,
+      statusCode: 200,
+      message: getMessage("M031"),
     });
   } catch (err) {
     return errorHandler({ res, statusCode: 500, message: err.message });
