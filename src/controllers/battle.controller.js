@@ -121,19 +121,26 @@ exports.battlesListForAllUser = async (req, res) => {
     )
       .populate("acceptedBy createdBy", { _id: 1, name: 1 })
       .sort({ createdAt: -1 });
+
     const openBattles = battles
       .filter((battle) => battle.status === "OPEN")
       .map((battle) => {
-        let showButton = "";
+        const battleObj = battle.toObject();
 
-        if (battle.createdBy === _id) {
-          showButton = !battle.acceptedBy ? "delete" : "accept";
-        } else {
-          showButton = !battle.acceptedBy ? "play" : "waiting";
-        }
+        const isCreatedByUser =
+          battleObj.createdBy._id.toString() === _id.toString();
+        const isAccepted = Boolean(battleObj.acceptedBy);
 
-        return { ...battle, showButton };
+        battleObj.showButton = isCreatedByUser
+          ? isAccepted
+            ? "accept"
+            : "delete"
+          : isAccepted
+          ? "waiting"
+          : "play";
+        return battleObj;
       });
+
     const liveBattles = battles.filter((battle) => battle.status === "PLAYING");
 
     return successHandler({
