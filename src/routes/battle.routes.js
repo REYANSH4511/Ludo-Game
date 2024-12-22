@@ -11,6 +11,7 @@ const {
   updateBattleResultByAdmin,
   battleHistory,
   battleDetails,
+  startGameByAcceptedUser,
 } = require("../controllers/battle.controller");
 const Validator = require("../validators/battle.validator");
 const router = express.Router();
@@ -1155,5 +1156,8 @@ router
  */
 
 router.route("/details/:battleId").get(verifyToken, battleDetails);
+
+
+router.route("/start-batte-by-accepted-user/:battleId").get(verifyToken, startGameByAcceptedUser);
 
 module.exports = router;

@@ -131,13 +131,18 @@ exports.battlesListForAllUser = async (req, res) => {
           battleObj.createdBy._id.toString() === _id.toString();
         const isAccepted = Boolean(battleObj.acceptedBy);
 
-        battleObj.showButton = isCreatedByUser
-          ? isAccepted
-            ? "accept"
-            : "delete"
-          : isAccepted
-          ? "waiting"
-          : "play";
+        // Determine the button state
+        battleObj.showButton =
+          battleObj.isBattleRequestAccepted && isAccepted
+            ? "start"
+            : isCreatedByUser
+            ? isAccepted
+              ? "accept"
+              : "delete"
+            : isAccepted
+            ? "waiting"
+            : "play";
+
         return battleObj;
       });
 
@@ -239,17 +244,9 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
       });
     }
     if (status === "accept") {
-      payload.status = "PLAYING";
+      payload.isBattleRequestAccepted = true;
       messageCode = "M038";
-      const userDetails = await User.findOne({ _id }, { balance: 1 });
-      if (userDetails?.balance?.totalBalance < amount) {
-        return errorHandler({
-          res,
-          statusCode: 400,
-          message: getMessage("M043"),
-        });
-      }
-      await updateTransactionForStartingGame(battleDetails);
+      await updateTransactionForStartingGame(_id, battleDetails?.entryFee);
     } else if (status === "reject") {
       messageCode = "M039";
       payload.acceptedBy = null;
@@ -262,6 +259,52 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
       res,
       statusCode: 200,
       message: getMessage(messageCode),
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
+
+//start game by accepted user
+exports.startGameByAcceptedUser = async (req, res) => {
+  try {
+    const { _id, role } = req.user;
+    if (!role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M015"),
+      });
+    }
+    const battleDetails = await Battle.findOne({ _id: req.params.battleId });
+    if (!battleDetails) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M015"),
+      });
+    }
+    if (!battleDetails?.isBattleRequestAccepted) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M052"),
+      });
+    }
+
+    await updateTransactionForStartingGame(_id, battleDetails?.entryFee);
+
+    battleDetails.status = "PLAYING";
+    await battleDetails.save();
+
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: getMessage("M037"),
     });
   } catch (err) {
     return errorHandler({

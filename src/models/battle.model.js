@@ -59,6 +59,11 @@ const battleSchema = new Schema(
       enum: ["COMPLETED", "PENDING"],
       default: "PENDING",
     },
+    isBattleRequestAccepted: {
+      type: Boolean,
+      default: false,
+    },
+
     paymentStatus: {
       type: String,
       enum: ["PENDING", "COMPLETED"],
