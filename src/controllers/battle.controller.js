@@ -352,7 +352,7 @@ exports.enterRoomNumber = async (req, res) => {
       });
     }
     await Battle.findOneAndUpdate(
-      { createdBy: _id, _id: battleId, status: "OPEN" },
+      { createdBy: _id, _id: battleId, status: "PLAYING" },
       { roomNo: roomNumber },
       { new: true }
     );
