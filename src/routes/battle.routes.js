@@ -1158,6 +1158,6 @@ router
 router.route("/details/:battleId").get(verifyToken, battleDetails);
 
 
-router.route("/start-batte-by-accepted-user/:battleId").get(verifyToken, startGameByAcceptedUser);
+router.route("/start-battle-by-accepted-user/:battleId").get(verifyToken, startGameByAcceptedUser);
 
 module.exports = router;
