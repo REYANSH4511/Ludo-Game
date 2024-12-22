@@ -117,6 +117,7 @@ exports.battlesListForAllUser = async (req, res) => {
         acceptedBy: 1,
         createdBy: 1,
         status: 1,
+        isBattleRequestAccepted: 1,
       }
     )
       .populate("acceptedBy createdBy", { _id: 1, name: 1 })
@@ -130,10 +131,9 @@ exports.battlesListForAllUser = async (req, res) => {
         const isCreatedByUser =
           battleObj.createdBy._id.toString() === _id.toString();
         const isAccepted = Boolean(battleObj.acceptedBy);
-
         // Determine the button state
         battleObj.showButton =
-          battleObj.isBattleRequestAccepted && isAccepted
+          battleObj?.isBattleRequestAccepted && isAccepted
             ? "start"
             : isCreatedByUser
             ? isAccepted
@@ -195,7 +195,7 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
       status: "OPEN",
       createdBy: { $ne: _id },
     });
-    
+
     if (userDetails?.balance?.totalBalance < battleDetails.entryFee) {
       return errorHandler({
         res,

@@ -142,7 +142,7 @@ exports.approveKYC = async (req, res) => {
         message: getMessage("M002"),
       });
     }
-    const updatedUser = await User.findOneAndUpdate(
+    await User.findOneAndUpdate(
       { _id: userId },
       { isKYCVerified: true },
       { new: true }
@@ -151,7 +151,6 @@ exports.approveKYC = async (req, res) => {
       res,
       statusCode: 200,
       message: getMessage("M049"),
-      data: updatedUser,
     });
   } catch (err) {
     return errorHandler({
