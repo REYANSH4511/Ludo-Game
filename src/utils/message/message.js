@@ -51,4 +51,5 @@ exports.messageList = {
   M050: "Payment settings updated successfully!",
   M051: "Admin upi accounts details fetched successfully!",
   M052: "Battle not accepted!",
+  M053: "Logined successfully!",
 };

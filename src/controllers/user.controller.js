@@ -284,7 +284,7 @@ exports.login = async (req, res) => {
       res,
       data: authResponse,
       statusCode: 200,
-      message: getMessage("M006"),
+      message: getMessage("M053"),
     });
   } catch (err) {
     return errorHandler({
