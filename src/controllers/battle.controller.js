@@ -393,11 +393,13 @@ exports.battleDetails = async (req, res) => {
         message: getMessage("M041"),
       });
     }
+    let isRoomNumberEntryAllowed =
+      battleDetails?.createdBy.toString() === _id.toString();
     return successHandler({
       res,
       statusCode: 200,
       message: getMessage("M040"),
-      data: battleDetails,
+      data: { ...battleDetails.toObject(), isRoomNumberEntryAllowed },
     });
   } catch (err) {
     return errorHandler({
