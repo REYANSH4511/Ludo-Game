@@ -183,6 +183,14 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
         message: getMessage("M033"),
       });
     }
+    const userDetails = await User.findOne({ _id }, { balance: 1 });
+    if (userDetails?.balance?.totalBalance < amount) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M043"),
+      });
+    }
     await Battle.findOneAndUpdate(
       {
         _id: battleId,
@@ -233,6 +241,14 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
     if (status === "accept") {
       payload.status = "PLAYING";
       messageCode = "M038";
+      const userDetails = await User.findOne({ _id }, { balance: 1 });
+      if (userDetails?.balance?.totalBalance < amount) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M043"),
+        });
+      }
       await updateTransactionForStartingGame(battleDetails);
     } else if (status === "reject") {
       messageCode = "M039";
