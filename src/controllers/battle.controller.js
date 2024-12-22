@@ -189,23 +189,23 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
       });
     }
     const userDetails = await User.findOne({ _id }, { balance: 1 });
-    if (userDetails?.balance?.totalBalance < amount) {
+
+    const battleDetails = await Battle.findOne({
+      _id: battleId,
+      status: "OPEN",
+      createdBy: { $ne: _id },
+    });
+    
+    if (userDetails?.balance?.totalBalance < battleDetails.entryFee) {
       return errorHandler({
         res,
         statusCode: 400,
         message: getMessage("M043"),
       });
     }
-    await Battle.findOneAndUpdate(
-      {
-        _id: battleId,
-        status: "OPEN",
-        createdBy: { $ne: _id },
-      },
-      { acceptedBy: _id },
-      { new: true }
-    );
+    battleDetails.acceptedBy = _id;
 
+    await battleDetails.save();
     return successHandler({
       res,
       statusCode: 200,
