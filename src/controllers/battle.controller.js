@@ -382,7 +382,10 @@ exports.battleDetails = async (req, res) => {
       });
     }
     const { battleId } = req.params;
-    const battleDetails = await Battle.findOne({ _id: battleId });
+    const battleDetails = await Battle.findOne({ _id: battleId }).populate(
+      "createdBy acceptedBy",
+      { _id: 1, name: 1 }
+    );
     if (!battleDetails) {
       return errorHandler({
         res,
