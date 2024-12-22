@@ -7,6 +7,7 @@ const {
   updateTransactionForStartingGame,
   updateWinningAmountForWinner,
 } = require("../utils/battleHelper");
+const Transaction = require("../models/transaction.model");
 
 // create battle
 exports.createBattle = async (req, res) => {
@@ -249,7 +250,11 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
     if (status === "accept") {
       payload.isBattleRequestAccepted = true;
       messageCode = "M038";
-      await updateTransactionForStartingGame(_id, battleDetails?.entryFee);
+      await updateTransactionForStartingGame(
+        _id,
+        battleDetails?.entryFee,
+        battleDetails._id
+      );
     } else if (status === "reject") {
       messageCode = "M039";
       payload.acceptedBy = null;
@@ -299,7 +304,11 @@ exports.startGameByAcceptedUser = async (req, res) => {
       });
     }
 
-    await updateTransactionForStartingGame(_id, battleDetails?.entryFee);
+    await updateTransactionForStartingGame(
+      _id,
+      battleDetails?.entryFee,
+      battleDetails._id
+    );
 
     battleDetails.status = "PLAYING";
     await battleDetails.save();
@@ -481,7 +490,14 @@ exports.updateBattleResultByUser = async (req, res) => {
       updatedMatchResult.cancellationReason = cancellationReason;
     }
     battleDetails.resultUpatedBy[userKey] = updatedMatchResult;
+    if (matchStatus === "CANCELLED") {
+      await Transaction.deleteOne({ battleId: battleId, userId: _id });
+      const userDetails = await User.findOne({ _id: _id }, { balance: 1 });
 
+      userDetails.balance.totalBalance += battleDetails.entryFee;
+      userDetails.balance.battlePlayed -= 1;
+      await userDetails.save();
+    }
     await battleDetails.save();
 
     return successHandler({

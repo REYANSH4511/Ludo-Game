@@ -58,6 +58,11 @@ const transactionSchema = new Schema(
     upiId: {
       type: String,
     },
+    battleId: {
+      type: Schema.Types.ObjectId,
+      ref: "Battle",
+      default: null,
+    },
     bankAccountDetails: bankAccountDetailsSchema,
     status: {
       type: "string",

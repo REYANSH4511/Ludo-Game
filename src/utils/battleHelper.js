@@ -4,7 +4,7 @@ const Settings = require("../models/settings.model");
 const { errorHandler } = require("./responseHandler");
 
 //function to update withdraw transaction and total balance in schemas
-const updateTransactionForStartingGame = async (userId, entryFee) => {
+const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
   try {
     const userDetails = await User.findOne({ _id: userId }, { balance: 1 });
     if (userDetails?.balance?.totalBalance < entryFee) {
@@ -20,6 +20,7 @@ const updateTransactionForStartingGame = async (userId, entryFee) => {
       amount: entryFee,
       status: "approved",
       isBattleTransaction: true,
+      battleId: battleId,
     });
     userDetails.balance.totalBalance -= entryFee;
     userDetails.balance.battlePlayed += 1;
