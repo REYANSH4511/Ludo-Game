@@ -394,7 +394,7 @@ exports.battleDetails = async (req, res) => {
       });
     }
     let isRoomNumberEntryAllowed =
-      battleDetails?.createdBy.toString() === _id.toString();
+      battleDetails?.createdBy?._id.toString() === _id.toString();
     return successHandler({
       res,
       statusCode: 200,
