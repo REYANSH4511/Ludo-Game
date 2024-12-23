@@ -14,6 +14,7 @@ const {
   getSocialMediaLinks,
   getAdminUPIDetails,
   getReferralHistory,
+  getReferAndEarnPageData,
 } = require("../controllers/user.controller.js");
 const { verifyToken } = require("../utils/authHelper.js");
 const Validators = require("../validators/user.validator.js");
@@ -1045,8 +1046,9 @@ router.route("/get-admin-upi").get(verifyToken, getAdminUPIDetails);
  *                 msg: "Internal server error."
  */
 
-
 router.route("/referral-history").get(verifyToken, getReferralHistory);
+
+router.route("/referr-and-earn-page").get(verifyToken, getReferAndEarnPageData);
 
 router.route("/").get(verifyToken, profile);
 

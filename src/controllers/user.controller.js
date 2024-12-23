@@ -548,3 +548,46 @@ exports.getReferralHistory = async (req, res) => {
     return errorHandler({ res, statusCode: 500, message: err.message });
   }
 };
+
+// get refer-earn page data
+exports.getReferAndEarnPageData = async (req, res) => {
+  try {
+    const { _id, role } = req.user;
+    if (role !== "user") {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M015"),
+      });
+    }
+
+    const userDetails = await User.findOne(
+      { _id },
+      {
+        referalCode: 1,
+        referredUsers: 1,
+        referralEarning: 1,
+        balance: 1,
+        _id: 0,
+      }
+    );
+
+    const settings = await Settings.findOne({});
+
+    const response = {
+      referalCode: userDetails?.referalCode,
+      totalReferrars: userDetails?.referredUsers?.length,
+      totalReferralEarning: userDetails?.balance?.referralEarning,
+      referralAmountPercentage: settings?.referralAmountPercentage || 2,
+    };
+
+    return successHandler({
+      res,
+      data: response,
+      statusCode: 200,
+      message: getMessage("M057"),
+    });
+  } catch (err) {
+    return errorHandler({ res, statusCode: 500, message: err.message });
+  }
+};

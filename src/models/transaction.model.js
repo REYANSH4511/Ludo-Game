@@ -36,7 +36,7 @@ const transactionSchema = new Schema(
     userDetails: userDetailsSchema,
     type: {
       type: String,
-      enum: ["deposit", "withdraw"],
+      enum: ["deposit", "withdraw", "referral"],
       required: true,
     },
     isReferral: {

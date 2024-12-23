@@ -27,7 +27,7 @@ const Validators = {
       }),
       otherwise: Joi.optional(),
     }),
-    type: Joi.string().valid("deposit", "withdraw").required(),
+    type: Joi.string().valid("deposit", "withdraw", "referral").required(),
     utrNo: Joi.when("type", {
       is: "deposit",
       then: Joi.string().required().messages({

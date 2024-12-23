@@ -19,10 +19,16 @@ exports.createTransaction = async (req, res) => {
     } = req.body;
 
     const payload = { userId: _id, amount, type, userDetails };
+    const user = await User.findOne({ _id }, { balance: 1 });
+    if (Number(amount) < 50) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M056"),
+      });
+    }
 
     if (type === "withdraw") {
-      const user = await User.findOne({ _id }, { balance: 1 });
-
       if (user?.balance?.cashWon < amount) {
         return errorHandler({
           res,
@@ -38,18 +44,22 @@ exports.createTransaction = async (req, res) => {
         payload.bankAccountDetails = bankAccountDetails;
       }
       user.balance.cashWon -= amount;
-      await user.save();
-    } else {
-      if (Number(amount) < 50) {
+    } else if (type === "deposit") {
+      payload.utrNo = utrNo;
+      payload.screenShot = screenShot;
+    } else if (type === "referral") {
+      if (user?.balance?.referralEarning < amount) {
         return errorHandler({
           res,
           statusCode: 400,
-          message: getMessage("M056"),
+          message: getMessage("M043"),
         });
       }
-      payload.utrNo = utrNo;
-      payload.screenShot = screenShot;
+
+      payload.isReferral = true;
+      user.balance.referralEarning -= amount;
     }
+    await user.save();
 
     await Transaction.create(payload);
     return successHandler({
@@ -133,8 +143,10 @@ exports.transactionResponse = async (req, res) => {
       user.balance.totalBalance =
         data.type === "deposit" && user.balance.totalBalance + data.amount;
     } else {
-      user.balance.totalBalance =
+      user.balance.cashWon =
         data.type === "withdraw" && user.balance.cashWon + data.amount;
+      user.balance.referralEarning =
+        data.type === "referral" && user.balance.referralEarning + data.amount;
     }
     await user.save();
     return successHandler({

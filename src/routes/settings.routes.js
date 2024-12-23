@@ -5,6 +5,7 @@ const {
   approveKYC,
   updatePaymentSetting,
   getSettingsConfig,
+  updateReferralAmountPercentage,
 } = require("../controllers/settingsController");
 const Validator = require("../validators/settings.validators");
 const router = express.Router();
@@ -212,7 +213,7 @@ router
   .post(
     Validator("validUpdateReferralAmountPercentage"),
     verifyToken,
-    updateSocialMediaLinks
+    updateReferralAmountPercentage
   );
 
 /**
