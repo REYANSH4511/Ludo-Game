@@ -13,6 +13,14 @@ const Transaction = require("../models/transaction.model");
 exports.createBattle = async (req, res) => {
   try {
     const { _id, role } = req.user;
+    const { amount } = req.body;
+    if (Number(amount) < 50) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M056"),
+      });
+    }
     if (!role === "user") {
       return errorHandler({
         res,
@@ -36,7 +44,6 @@ exports.createBattle = async (req, res) => {
       createdBy: _id,
       status: "OPEN",
     });
-    const { amount } = req.body;
     if (
       checkOpenBattle?.length >= 2 ||
       checkOpenBattle.some((item) => item?.entryFee == amount)
@@ -537,7 +544,7 @@ exports.updateBattleResultByUser = async (req, res) => {
 exports.updateBattleResultByAdmin = async (req, res) => {
   try {
     const { _id, role } = req.user;
-    if (role !== "admin") {
+    if (role === "user") {
       return errorHandler({
         res,
         statusCode: 400,

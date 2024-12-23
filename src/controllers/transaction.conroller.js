@@ -23,7 +23,7 @@ exports.createTransaction = async (req, res) => {
     if (type === "withdraw") {
       const user = await User.findOne({ _id }, { balance: 1 });
 
-      if (user?.balance?.totalBalance < amount) {
+      if (user?.balance?.cashWon < amount) {
         return errorHandler({
           res,
           statusCode: 400,
@@ -37,9 +37,16 @@ exports.createTransaction = async (req, res) => {
       } else if (paymentMethod === "bankAccount") {
         payload.bankAccountDetails = bankAccountDetails;
       }
-      user.balance.totalBalance -= amount;
+      user.balance.cashWon -= amount;
       await user.save();
     } else {
+      if (Number(amount) < 50) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M056"),
+        });
+      }
       payload.utrNo = utrNo;
       payload.screenShot = screenShot;
     }
@@ -127,7 +134,7 @@ exports.transactionResponse = async (req, res) => {
         data.type === "deposit" && user.balance.totalBalance + data.amount;
     } else {
       user.balance.totalBalance =
-        data.type === "withdraw" && user.balance.totalBalance + data.amount;
+        data.type === "withdraw" && user.balance.cashWon + data.amount;
     }
     await user.save();
     return successHandler({

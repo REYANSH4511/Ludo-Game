@@ -35,7 +35,6 @@ const updateWinningAmountForWinner = async (data) => {
   try {
     const userDetails = await User.findOne({ _id: data.winner });
 
-    userDetails.balance.totalBalance += data.winningAmount;
     userDetails.balance.cashWon += data.winningAmount;
 
     await userDetails.save();
@@ -67,6 +66,7 @@ const updateWinningAmountForWinner = async (data) => {
     }
   } catch (err) {
     console.log(err);
+    throw err;
   }
 };
 
