@@ -253,7 +253,7 @@ exports.login = async (req, res) => {
       return errorHandler({
         res,
         statusCode: 400,
-        message: getMessage("M002"),
+        message: getMessage("M054"),
       });
     }
 
@@ -275,7 +275,7 @@ exports.login = async (req, res) => {
       return errorHandler({
         res,
         statusCode: 400,
-        message: getMessage("M003"),
+        message: getMessage("M054"),
       });
     }
 

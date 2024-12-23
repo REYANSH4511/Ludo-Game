@@ -32,7 +32,21 @@ exports.createBattle = async (req, res) => {
         message: getMessage("M036"),
       });
     }
+    const checkOpenBattle = await Battle.find({
+      createdBy: _id,
+      status: "OPEN",
+    });
     const { amount } = req.body;
+    if (
+      checkOpenBattle?.length >= 2 ||
+      checkOpenBattle.some((item) => item?.entryFee == amount)
+    ) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M055"),
+      });
+    }
 
     const userDetails = await User.findOne({ _id }, { balance: 1 });
 

@@ -52,4 +52,6 @@ exports.messageList = {
   M051: "Admin upi accounts details fetched successfully!",
   M052: "Battle not accepted!",
   M053: "Logined successfully!",
+  M054: "Invalid credentials!",
+  M055: "Battle create not allowed!",
 };
