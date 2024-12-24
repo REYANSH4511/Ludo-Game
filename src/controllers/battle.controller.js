@@ -152,7 +152,7 @@ exports.battlesListForAllUser = async (req, res) => {
 
         const isCreatedByUser =
           battleObj.createdBy._id.toString() === _id.toString();
-        const isAccepted = Boolean(battleObj.acceptedBy);
+        const isAccepted = battleObj.acceptedBy._id.toString() === _id.toString();
         // Determine the button state
         battleObj.showButton = battleObj?.isBattleRequestAccepted
           ? isAccepted

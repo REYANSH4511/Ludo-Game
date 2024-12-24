@@ -8,11 +8,7 @@ const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
   try {
     const userDetails = await User.findOne({ _id: userId }, { balance: 1 });
     if (userDetails?.balance?.totalBalance < entryFee) {
-      return errorHandler({
-        res,
-        statusCode: 400,
-        message: getMessage("M043"),
-      });
+      throw new Error("Insufficient balance");
     }
     await Transaction.create({
       userId: userId,
