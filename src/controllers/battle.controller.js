@@ -152,24 +152,28 @@ exports.battlesListForAllUser = async (req, res) => {
 
         const isCreatedByUser =
           battleObj.createdBy._id.toString() === _id.toString();
-        const isAccepted = battleObj?.acceptedBy?._id.toString() === _id.toString();
+        const isAcceptedUser =
+          battleObj?.acceptedBy?._id.toString() === _id.toString();
 
-        console.log("isCreatedByUser", isCreatedByUser);
-        console.log("isAccepted", isAccepted);
+        const isAccepted = Boolean(battleObj?.acceptedBy?._id);
+
         // Determine the button state
-        battleObj.showButton = battleObj?.isBattleRequestAccepted
-          ? isAccepted
-            ? "start"
+        battleObj.showButton =
+          (!isAcceptedUser && !isCreatedByUser)
+            ? "play"
+            : battleObj?.isBattleRequestAccepted
+            ? isAccepted
+              ? "start"
+              : isCreatedByUser
+              ? "redirect"
+              : "waiting"
             : isCreatedByUser
-            ? "redirect"
-            : "waiting"
-          : isCreatedByUser
-          ? isAccepted
-            ? "accept"
-            : "delete"
-          : isAccepted
-          ? "waiting"
-          : "play";
+            ? isAccepted
+              ? "accept"
+              : "delete"
+            : isAccepted
+            ? "waiting"
+            : "play";
 
         return battleObj;
       });
