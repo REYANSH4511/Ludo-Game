@@ -66,19 +66,12 @@ exports.createBattle = async (req, res) => {
     }
 
     const winnerAmount = amount * 2 - amount * 0.2;
-    const battleDetails = await Battle.create({
+     await Battle.create({
       createdBy: _id,
       entryFee: amount,
       winnerAmount,
     });
-    await Transaction.create({
-      userId: _id,
-      type: "withdraw",
-      amount,
-      battleId: battleDetails._id,
-      status: "approved",
-      isBattleTransaction: true,
-    });
+
     return successHandler({
       res,
       statusCode: 200,
@@ -113,7 +106,7 @@ exports.deleteBattle = async (req, res) => {
         message: getMessage("M015"),
       });
     }
-    await Transaction.deleteOne({ battleId });
+    
     await Battle.deleteOne({ _id: battleId });
 
     return successHandler({
