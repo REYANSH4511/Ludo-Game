@@ -80,16 +80,26 @@ exports.createTransaction = async (req, res) => {
 exports.getTransactions = async (req, res) => {
   try {
     const { _id, role } = req.user;
+    const { type } = req.query;
     const filter = { isReferral: false };
     if (role === "user") {
       filter.userId = _id;
     }
-    const transactionList = await Transaction.find(filter);
+    if (type) filter.type = type;
+
+    const transactionList = await Transaction.find(filter).populate("userId", {
+      mobileNo: 1,
+      name: 1,
+    });
+
     const user = await User.findOne({ _id }, { balance: 1 });
+
     let totalBalance = 0;
+
     if (role === "user") {
       totalBalance = user?.balance?.totalBalance;
     }
+
     const data = { transactionList, totalBalance };
     return successHandler({
       res,

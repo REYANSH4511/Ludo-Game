@@ -159,7 +159,7 @@ exports.battlesListForAllUser = async (req, res) => {
 
         // Determine the button state
         battleObj.showButton =
-          (!isAcceptedUser && !isCreatedByUser)
+          !isAcceptedUser && !isCreatedByUser
             ? "play"
             : battleObj?.isBattleRequestAccepted
             ? isAccepted
@@ -256,7 +256,10 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
 exports.acceptOrRejectRequestByCreater = async (req, res) => {
   try {
     const { _id, role } = req.user;
-    if (!role === "user") {
+    const { battleId, status } = req.body;
+
+    // Validate role
+    if (role !== "user") {
       return errorHandler({
         res,
         statusCode: 400,
@@ -264,33 +267,82 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
       });
     }
 
-    const { battleId, status } = req.body;
+    // Fetch battle details
+    const battleDetails = await Battle.findOne({ _id: battleId });
+    if (!battleDetails) {
+      return errorHandler({
+        res,
+        statusCode: 404,
+        message: getMessage("M016"),
+      });
+    }
+
+    if (
+      battleDetails.status === "PLAYING" ||
+      battleDetails.matchStatus === "COMPLETED"
+    ) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M015"),
+      });
+    }
+
     const payload = {};
     let messageCode;
-    const battleDetails = await Battle.findOne({ _id: battleId });
-    if (battleDetails.status === "PLAYING") {
+
+    if (status === "accept") {
+      if (battleDetails.createdBy.toString() === _id.toString()) {
+        payload.isBattleRequestAccepted = true;
+        messageCode = "M038";
+
+        await updateTransactionForStartingGame(
+          _id,
+          battleDetails.entryFee,
+          battleDetails._id
+        );
+      } else {
+        return errorHandler({
+          res,
+          statusCode: 403,
+          message: getMessage("M017"),
+        });
+      }
+    } else if (status === "reject") {
+      messageCode = "M039";
+
+      if (battleDetails.createdBy.toString() === _id.toString()) {
+        payload.acceptedBy = null;
+      } else if (battleDetails.acceptedBy?.toString() === _id.toString()) {
+        payload.resultUpatedBy = payload.resultUpatedBy || {};
+        payload.resultUpatedBy.acceptedUser = {
+          matchStatus: "CANCELLED",
+          cancellationReason: "notJoined",
+        };
+        payload.status = "CLOSED";
+      } else {
+        return errorHandler({
+          res,
+          statusCode: 403,
+          message: getMessage("M017"),
+        });
+      }
+    } else {
       return errorHandler({
         res,
         statusCode: 400,
-        message: getMessage("M015"),
+        message: getMessage("M018"),
       });
     }
-    if (status === "accept") {
-      payload.isBattleRequestAccepted = true;
-      messageCode = "M038";
-      await updateTransactionForStartingGame(
-        _id,
-        battleDetails?.entryFee,
-        battleDetails._id
-      );
-    } else if (status === "reject") {
-      messageCode = "M039";
-      payload.acceptedBy = null;
-    }
-    await Battle.findOneAndUpdate({ _id: battleId, createdBy: _id }, payload, {
-      new: true,
-    });
 
+    // Update battle details
+    await Battle.findOneAndUpdate(
+      { _id: battleId },
+      { $set: payload },
+      { new: true }
+    );
+
+    // Return success response
     return successHandler({
       res,
       statusCode: 200,
@@ -524,9 +576,12 @@ exports.updateBattleResultByUser = async (req, res) => {
     }
     battleDetails.resultUpatedBy[userKey] = updatedMatchResult;
     if (matchStatus === "CANCELLED") {
-      await Transaction.deleteOne({ battleId: battleId, userId: _id });
-      const userDetails = await User.findOne({ _id: _id }, { balance: 1 });
+      await Transaction.deleteOne({
+        battleId: battleId,
+        userId: _id,
+      });
 
+      const userDetails = await User.findOne({ _id: _id }, { balance: 1 });
       userDetails.balance.totalBalance += battleDetails.entryFee;
       userDetails.balance.battlePlayed -= 1;
       await userDetails.save();

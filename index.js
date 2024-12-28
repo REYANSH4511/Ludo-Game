@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const { connectDB } = require("./dbConnection");
@@ -11,6 +10,7 @@ const settingsRouter = require("./src/routes/settings.routes");
 const notificationRouter = require("./src/routes/notification.routes");
 const battleRouter = require("./src/routes/battle.routes");
 const specs = require("./src/docs/swagger");
+require("./src/cron");
 const PORT = process.env.PORT || 8000;
 const swaggerUi = require("swagger-ui-express");
 app.use(cors());

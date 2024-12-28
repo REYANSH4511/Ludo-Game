@@ -198,6 +198,14 @@ exports.refreshAuthToken = async (req, res) => {
 // Create Admin User
 exports.createAdminUser = async (req, res) => {
   try {
+    const { _id, role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
     const { name, email, password, mobileNo } = req.body;
 
     const salt = crypto.randomBytes(16).toString("hex");
