@@ -537,7 +537,7 @@ exports.updateBattleResultByUser = async (req, res) => {
 
     const { battleId, matchStatus, screenShot, cancellationReason } = req.body;
     const battleDetails = await Battle.findById(battleId);
-  
+
     if (!battleDetails) {
       return errorHandler({
         res,
@@ -567,7 +567,8 @@ exports.updateBattleResultByUser = async (req, res) => {
 
     const userKey = isAcceptedUser ? "acceptedUser" : "createdUser";
 
-    const checkMatchStaus = battleDetails?.resultUpatedBy?.[userKey]?.matchStatus;
+    const checkMatchStaus =
+      battleDetails?.resultUpatedBy?.[userKey]?.matchStatus;
 
     if (checkMatchStaus) {
       return errorHandler({
@@ -586,7 +587,7 @@ exports.updateBattleResultByUser = async (req, res) => {
     if (cancellationReason) {
       updatedMatchResult.cancellationReason = cancellationReason;
     }
- 
+
     battleDetails.resultUpatedBy[userKey] = updatedMatchResult;
     if (matchStatus === "CANCELLED") {
       await Transaction.deleteOne({
@@ -638,7 +639,7 @@ exports.updateBattleResultByAdmin = async (req, res) => {
       });
     }
 
-    if (battleDetails?.matchStatus !== "PLAYING") {
+    if (battleDetails?.status !== "PLAYING") {
       return errorHandler({
         res,
         statusCode: 400,
