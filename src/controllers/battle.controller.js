@@ -66,7 +66,7 @@ exports.createBattle = async (req, res) => {
     }
 
     const winnerAmount = amount * 2 - amount * 0.2;
-     await Battle.create({
+    await Battle.create({
       createdBy: _id,
       entryFee: amount,
       winnerAmount,
@@ -106,7 +106,7 @@ exports.deleteBattle = async (req, res) => {
         message: getMessage("M015"),
       });
     }
-    
+
     await Battle.deleteOne({ _id: battleId });
 
     return successHandler({
@@ -537,7 +537,7 @@ exports.updateBattleResultByUser = async (req, res) => {
 
     const { battleId, matchStatus, screenShot, cancellationReason } = req.body;
     const battleDetails = await Battle.findById(battleId);
-
+  
     if (!battleDetails) {
       return errorHandler({
         res,
@@ -545,7 +545,7 @@ exports.updateBattleResultByUser = async (req, res) => {
         message: getMessage("M041"),
       });
     }
-    if (battleDetails?.matchStatus !== "PLAYING") {
+    if (battleDetails?.status !== "PLAYING") {
       return errorHandler({
         res,
         statusCode: 400,
@@ -554,7 +554,8 @@ exports.updateBattleResultByUser = async (req, res) => {
     }
     const isAcceptedUser =
       battleDetails.acceptedBy.toString() === _id.toString();
-    const isCreatedUser = battleDetails.createdBy.toString() === _id.toString();
+    const isCreatedUser =
+      battleDetails?.createdBy.toString() === _id.toString();
 
     if (!isAcceptedUser && !isCreatedUser) {
       return errorHandler({
@@ -566,7 +567,9 @@ exports.updateBattleResultByUser = async (req, res) => {
 
     const userKey = isAcceptedUser ? "acceptedUser" : "createdUser";
 
-    if (battleDetails.resultUpatedBy[userKey]?.matchStatus) {
+    const checkMatchStaus = battleDetails?.resultUpatedBy?.[userKey]?.matchStatus;
+
+    if (checkMatchStaus) {
       return errorHandler({
         res,
         statusCode: 400,
@@ -574,11 +577,16 @@ exports.updateBattleResultByUser = async (req, res) => {
       });
     }
 
+    if (!battleDetails.resultUpatedBy) {
+      battleDetails.resultUpatedBy = {};
+    }
+
     // Update match result for the user
     let updatedMatchResult = { matchStatus, screenShot };
     if (cancellationReason) {
       updatedMatchResult.cancellationReason = cancellationReason;
     }
+ 
     battleDetails.resultUpatedBy[userKey] = updatedMatchResult;
     if (matchStatus === "CANCELLED") {
       await Transaction.deleteOne({

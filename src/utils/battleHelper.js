@@ -31,7 +31,7 @@ const updateWinningAmountForWinner = async (data) => {
   try {
     const userDetails = await User.findOne({ _id: data.winner });
 
-    userDetails.balance.cashWon += data.winningAmount;
+    userDetails.balance.cashWon += data.winnerAmount;
 
     await userDetails.save();
     const referredUserDetails = await User.findOne({ _id: data.referredBy });
@@ -43,7 +43,7 @@ const updateWinningAmountForWinner = async (data) => {
       );
       const referralEarningPercentage = settings?.referralAmountPercentage || 0;
       const referralAmount =
-        (data.winningAmount * referralEarningPercentage) / 100;
+        (data.winnerAmount * referralEarningPercentage) / 100;
       // Add 2% of the winning amount to the referrer's referralEarning
       referredUserDetails.balance.referralEarning += referralAmount;
 
