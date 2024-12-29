@@ -817,7 +817,7 @@ exports.battleHistory = async (req, res) => {
     const battleList = await Battle.find({
       $or: [{ acceptedBy: _id }, { createdBy: _id }],
     })
-      .populate("acceptedBy createdBy", { _id: 1, name: 1 })
+      .populate("acceptedBy createdBy winner loser", { _id: 1, name: 1 })
       .sort({ createdAt: -1 });
     const updatedBattleList = battleList.map((item) => ({
       ...item.toObject(),
