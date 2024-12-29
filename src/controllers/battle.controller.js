@@ -507,7 +507,16 @@ exports.battleListAdmin = async (req, res) => {
         message: getMessage("M015"),
       });
     }
-    const battleList = await Battle.find({}).sort({ createdAt: -1 });
+    const { status } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    const battleList = await Battle.find(filter)
+      .sort({ createdAt: -1 })
+      .populate("createdBy acceptedBy winner loser", {
+        _id: 1,
+        name: 1,
+        mobileNo: 1,
+      });
 
     return successHandler({
       res,
