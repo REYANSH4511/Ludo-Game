@@ -216,6 +216,7 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
       _id: battleId,
       status: "OPEN",
       createdBy: { $ne: _id },
+      acceptedBy: null,
     });
 
     if (!checkValidRequest) {
