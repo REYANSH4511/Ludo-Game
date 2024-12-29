@@ -58,4 +58,7 @@ exports.messageList = {
   M057: "Reffer and earn page details fetched successfully!",
   M058: "Users list fetched successfully!",
   M059: "KYC request users fetched successfully!",
+  M060: "Dashboard data fetched successfully!",
+  M061: "User blocked successfully!",
+  M062: "Penalty applied successfully!",
 };

@@ -8,7 +8,6 @@ exports.updateBattleResult = async () => {
       for (let index = 0; index < battles.length; index++) {
         const battle = battles[index];
         if (!battle.winner || !battle.loser) {
-          
           if (
             battle?.resultUpatedBy?.acceptedUser?.matchStatus &&
             battle?.resultUpatedBy?.createdUser?.matchStatus
@@ -19,21 +18,29 @@ exports.updateBattleResult = async () => {
             ) {
               battle.winner = battle?.acceptedBy;
               battle.loser = battle?.createdBy;
+              battle.matchStatus = "COMPLETED";
             } else if (
               battle?.resultUpatedBy?.acceptedUser?.matchStatus === "LOSS" &&
               battle?.resultUpatedBy?.createdUser?.matchStatus === "WON"
             ) {
               battle.loser = battle?.acceptedBy;
               battle.winner = battle?.createdBy;
+              battle.matchStatus = "COMPLETED";
+            } else if (
+              battle?.resultUpatedBy?.acceptedUser?.matchStatus ===
+                "CANCELLED" &&
+              battle?.resultUpatedBy?.createdUser?.matchStatus === "CANCELLED"
+            ) {
+              battle.winner = null;
+              battle.loser = null;
+              battle.matchStatus = "CANCELLED";
             }
-            battle.matchStatus = "COMPLETED";
             battle.paymentStatus = "COMPLETED";
             battle.status = "CLOSED";
             await updateWinningAmountForWinner(battle);
             await battle.save();
           }
         }
-        console.log("battle", battle);
       }
     }
   } catch (err) {

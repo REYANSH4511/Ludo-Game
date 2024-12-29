@@ -319,6 +319,7 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
 
       if (battleDetails.createdBy.toString() === _id.toString()) {
         payload.acceptedBy = null;
+        payload.isBattleRequestAccepted = false;
       } else if (battleDetails.acceptedBy?.toString() === _id.toString()) {
         payload.resultUpatedBy = payload.resultUpatedBy || {};
         payload.resultUpatedBy.acceptedUser = {
@@ -638,17 +639,7 @@ exports.updateBattleResultByUser = async (req, res) => {
     }
 
     battleDetails.resultUpatedBy[userKey] = updatedMatchResult;
-    if (matchStatus === "CANCELLED") {
-      await Transaction.deleteOne({
-        battleId: battleId,
-        userId: _id,
-      });
 
-      const userDetails = await User.findOne({ _id: _id }, { balance: 1 });
-      userDetails.balance.totalBalance += battleDetails.entryFee;
-      userDetails.balance.battlePlayed -= 1;
-      await userDetails.save();
-    }
     await battleDetails.save();
 
     return successHandler({
@@ -677,7 +668,7 @@ exports.updateBattleResultByAdmin = async (req, res) => {
       });
     }
 
-    const { battleId, winner, loser } = req.body;
+    const { battleId, winner, loser, isCancelled } = req.body;
     const battleDetails = await Battle.findById(battleId);
 
     if (!battleDetails) {
@@ -688,21 +679,94 @@ exports.updateBattleResultByAdmin = async (req, res) => {
       });
     }
 
-    if (battleDetails?.status !== "PLAYING") {
-      return errorHandler({
-        res,
-        statusCode: 400,
-        message: getMessage("M048"),
+    if (
+      isCancelled &&
+      battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus ===
+        "CANCELLED" &&
+      battleDetails?.resultUpatedBy?.acceptedBy?.cancellationReason ===
+        "notJoined"
+    ) {
+      const transacion = await Transaction.deleteOne({
+        battleId,
+        userId: battleDetails?.createdBy,
       });
-    }
+      if (transacion.deletedCount === 0) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M048"),
+        });
+      }
+      const user = await User.findOne(
+        { _id: battleDetails?.createdBy },
+        { balance: 1 }
+      );
 
-    // Update match result for the user
-    battleDetails.matchStatus = "COMPLETED";
-    battleDetails.winner = winner;
-    battleDetails.loser = loser;
-    battleDetails.status = "CLOSED";
-    battleDetails.paymentStatus = "COMPLETED";
-    await updateWinningAmountForWinner(battleDetails);
+      Object.assign(user.balance, {
+        totalBalance: user.balance.totalBalance + battleDetails.entryFee,
+        battlePlayed: user.balance.battlePlayed - 1,
+      });
+
+      await user.save();
+    } else {
+      if (battleDetails?.status !== "PLAYING") {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M048"),
+        });
+      }
+      const updateMatchStatus = (user, status) => {
+        if (!user?.matchStatus) {
+          user.matchStatus = status;
+        }
+      };
+
+      if (isCancelled) {
+        updateMatchStatus(
+          battleDetails?.resultUpatedBy?.createdUser,
+          "CANCELLED"
+        );
+        updateMatchStatus(
+          battleDetails?.resultUpatedBy?.acceptedUser,
+          "CANCELLED"
+        );
+      } else {
+        const winnerStatus = "WON";
+        const loserStatus = "LOSS";
+
+        if (winner === battleDetails?.createdBy) {
+          updateMatchStatus(
+            battleDetails?.resultUpatedBy?.createdUser,
+            winnerStatus
+          );
+          updateMatchStatus(
+            battleDetails?.resultUpatedBy?.acceptedUser,
+            loserStatus
+          );
+        } else if (winner === battleDetails?.acceptedBy) {
+          updateMatchStatus(
+            battleDetails?.resultUpatedBy?.createdUser,
+            loserStatus
+          );
+          updateMatchStatus(
+            battleDetails?.resultUpatedBy?.acceptedUser,
+            winnerStatus
+          );
+        }
+      }
+
+      // Update match details
+      Object.assign(battleDetails, {
+        matchStatus: isCancelled ? "CANCELLED" : "COMPLETED",
+        winner,
+        loser,
+        status: "CLOSED",
+        paymentStatus: "COMPLETED",
+      });
+
+      await updateWinningAmountForWinner(battleDetails);
+    }
     await battleDetails.save();
 
     return successHandler({

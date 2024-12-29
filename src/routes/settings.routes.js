@@ -8,6 +8,8 @@ const {
   updateReferralAmountPercentage,
   getAllUsersList,
   getUnverifiedUsersList,
+  adminDashboard,
+  blockOrUnblockUsers,
 } = require("../controllers/settingsController");
 const Validator = require("../validators/settings.validators");
 const router = express.Router();
@@ -578,8 +580,16 @@ router.route("/settings").get(verifyToken, getSettingsConfig);
 
 router.route("/all-users").get(verifyToken, getAllUsersList);
 
+router
+  .route("/get-verification-request-list")
+  .get(verifyToken, getUnverifiedUsersList);
 
-router.route("/get-verification-request-list").get(verifyToken, getUnverifiedUsersList);
+router.route("/dashboard").get(verifyToken, adminDashboard);
+
+router
+  .route("/block-user")
+  .post(verifyToken, Validator("validBlockUser"), blockOrUnblockUsers);
+
 
 
 

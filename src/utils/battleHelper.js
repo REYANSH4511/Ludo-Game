@@ -29,35 +29,48 @@ const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
 
 const updateWinningAmountForWinner = async (data) => {
   try {
-    const userDetails = await User.findOne({ _id: data.winner });
+    if (
+      data.resultUpatedBy?.acceptedUser?.matchStatus === "CANCELLED" &&
+      data.resultUpatedBy?.createdUser?.matchStatus === "CANCELLED"
+    ) {
+      const createdUser = await User.findOne({ _id: data.createdBy });
+      const acceptedUser = await User.findOne({ _id: data.acceptedBy });
+      createdUser.balance.totalBalance += data.entryFee;
+      acceptedUser.balance.totalBalance += data.entryFee;
+      await createdUser.save();
+      await acceptedUser.save();
+    } else {
+      const userDetails = await User.findOne({ _id: data.winner });
 
-    userDetails.balance.cashWon += data.winnerAmount;
+      userDetails.balance.cashWon += data.winnerAmount;
 
-    await userDetails.save();
-    const referredUserDetails = await User.findOne({ _id: data.referredBy });
+      await userDetails.save();
+      const referredUserDetails = await User.findOne({ _id: data.referredBy });
 
-    if (referredUserDetails) {
-      const settings = await Settings.findOne(
-        {},
-        { referralAmountPercentage: 1, _id: 0, __v: 0 }
-      );
-      const referralEarningPercentage = settings?.referralAmountPercentage || 0;
-      const referralAmount =
-        (data.winnerAmount * referralEarningPercentage) / 100;
-      // Add 2% of the winning amount to the referrer's referralEarning
-      referredUserDetails.balance.referralEarning += referralAmount;
+      if (referredUserDetails) {
+        const settings = await Settings.findOne(
+          {},
+          { referralAmountPercentage: 1, _id: 0, __v: 0 }
+        );
+        const referralEarningPercentage =
+          settings?.referralAmountPercentage || 0;
+        const referralAmount =
+          (data.winnerAmount * referralEarningPercentage) / 100;
+        // Add 2% of the winning amount to the referrer's referralEarning
+        referredUserDetails.balance.referralEarning += referralAmount;
 
-      // Check if the user exists in the referredUsers array
-      const referredUser = referredUserDetails.referredUsers.find(
-        (user) => user.userId.toString() === data.winner.toString()
-      );
+        // Check if the user exists in the referredUsers array
+        const referredUser = referredUserDetails.referredUsers.find(
+          (user) => user.userId.toString() === data.winner.toString()
+        );
 
-      if (referredUser) {
-        // Update referralEarning for the user in the referredUsers array
-        referredUser.referralEarning += referralAmount;
+        if (referredUser) {
+          // Update referralEarning for the user in the referredUsers array
+          referredUser.referralEarning += referralAmount;
 
-        // Save the updated referredUserDetails
-        await referredUserDetails.save();
+          // Save the updated referredUserDetails
+          await referredUserDetails.save();
+        }
       }
     }
   } catch (err) {

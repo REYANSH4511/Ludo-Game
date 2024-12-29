@@ -24,6 +24,10 @@ const Validators = {
     winner: Joi.string().required(),
     loser: Joi.string().required(),
   }),
+  validBlockUser: Joi.object({
+    userId: Joi.string().required(),
+    block: Joi.boolean().required(),
+  }),
 };
 
 module.exports = Validators;
