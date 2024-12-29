@@ -708,7 +708,7 @@ router
 router
   .route("/update-battle-result-by-user")
   .post(
-    Validator("ValidUpdateBattleResultByUser"),
+    // Validator("ValidUpdateBattleResultByUser"),
     verifyToken,
     updateBattleResultByUser
   );
