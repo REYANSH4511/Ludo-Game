@@ -326,6 +326,12 @@ exports.adminDashboard = async (req, res) => {
       ...dateFilter,
     });
 
+    const completedBattles = await Battle.countDocuments({
+      status: "CLOSED",
+      matchStatus: "COMPLETED",
+      ...dateFilter,
+    });
+
     const pendingDepositTransaction = await Transaction.countDocuments({
       status: "pending",
       type: "deposit",
@@ -350,6 +356,11 @@ exports.adminDashboard = async (req, res) => {
       ...dateFilter,
     });
 
+    const totalWithdraw = await Transaction.countDocuments({
+      type: "withdraw",
+      ...dateFilter,
+    });
+
     const data = {
       totalUsers,
       activeUsers,
@@ -368,6 +379,8 @@ exports.adminDashboard = async (req, res) => {
       rejectedDepositRequest,
       pendingWithdrawalTransaction,
       rejectedWithdrawalRequest,
+      completedBattles,
+      totalWithdraw,
     };
 
     return successHandler({
