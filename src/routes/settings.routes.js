@@ -6,6 +6,7 @@ const {
   updatePaymentSetting,
   getSettingsConfig,
   updateReferralAmountPercentage,
+  getAllUsersList,
 } = require("../controllers/settingsController");
 const Validator = require("../validators/settings.validators");
 const router = express.Router();
@@ -494,5 +495,86 @@ router.route("/approve-kyc/:userId").post(verifyToken, approveKYC);
  */
 
 router.route("/settings").get(verifyToken, getSettingsConfig);
+
+/**
+ * @swagger
+ * /api/v1/admin/all-users:
+ *   get:
+ *     summary: Get all users list
+ *     description: Retrieves a list of all registered users.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Users list retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                       firstname:
+ *                         type: string
+ *                       lastname:
+ *                         type: string
+ *                       email:
+ *                         type: string
+ *                       role:
+ *                         type: string
+ *               example:
+ *                 statusCode: 200
+ *                 status: "success"
+ *                 data:
+ *                   - id: "123"
+ *                     name: "John"
+ *                     mobileNo: "Doe"
+ *       '401':
+ *         description: Unauthorized, invalid or missing token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized, invalid or missing token."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
+
+router.route("/all-users").get(verifyToken, getAllUsersList);
 
 module.exports = router;

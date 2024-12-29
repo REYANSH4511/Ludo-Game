@@ -178,3 +178,31 @@ exports.getSettingsConfig = async (req, res) => {
     });
   }
 };
+
+exports.getAllUsersList = async (req, res) => {
+  try {
+    const { role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
+    const users = await User.find(
+      { role: "user" },
+      { _id: 1, name: 1, mobileNo: 1 }
+    );
+    return successHandler({
+      res,
+      statusCode: 200,
+      data: users,
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
