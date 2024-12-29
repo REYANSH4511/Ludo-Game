@@ -44,6 +44,16 @@ const updateWinningAmountForWinner = async (data) => {
 
       userDetails.balance.cashWon += data.winnerAmount;
 
+      await Transaction.create({
+        userId: data.winner,
+        type: "deposit",
+        amount: data.winnerAmount,
+        status: "approved",
+        isBattleTransaction: true,
+        battleId: data.battleId,
+        isWonCash: true,
+      });
+
       await userDetails.save();
       const referredUserDetails = await User.findOne({ _id: data.referredBy });
 

@@ -55,6 +55,10 @@ const transactionSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isWonCash: {
+      type: Boolean,
+      default: false,
+    },
     isPenalty: {
       type: Boolean,
       default: false,
