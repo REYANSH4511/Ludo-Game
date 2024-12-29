@@ -61,4 +61,5 @@ exports.messageList = {
   M060: "Dashboard data fetched successfully!",
   M061: "User blocked successfully!",
   M062: "Penalty applied successfully!",
+  M063: "Invalid amount!",
 };

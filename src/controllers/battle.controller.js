@@ -6,6 +6,7 @@ const User = require("../models/user.model");
 const {
   updateTransactionForStartingGame,
   updateWinningAmountForWinner,
+  isValidAmount,
 } = require("../utils/battleHelper");
 const Transaction = require("../models/transaction.model");
 
@@ -21,6 +22,14 @@ exports.createBattle = async (req, res) => {
         message: getMessage("M056"),
       });
     }
+    if (!isValidAmount(amount)) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M063"),
+      });
+    }
+
     if (!role === "user") {
       return errorHandler({
         res,
