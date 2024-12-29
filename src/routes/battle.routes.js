@@ -12,6 +12,8 @@ const {
   battleHistory,
   battleDetails,
   startGameByAcceptedUser,
+  battleAdminDetails,
+  battleListAdmin,
 } = require("../controllers/battle.controller");
 const Validator = require("../validators/battle.validator");
 const router = express.Router();
@@ -233,7 +235,7 @@ router.route("/:battleId").delete(verifyToken, deleteBattle);
 
 /**
  * @swagger
- * /api/v1/battle/:
+ * /api/v1/battle:
  *   get:
  *     summary: Fetch list of battles
  *     description: Retrieves a list of open and live battles. A valid token is required for authorization.
@@ -1157,7 +1159,225 @@ router
 
 router.route("/details/:battleId").get(verifyToken, battleDetails);
 
+/**
+ * @swagger
+ * /api/v1/battle/admin/details/{battleId}:
+ *   get:
+ *     summary: Get Battle Details
+ *     description: Fetches the details of a specific battle based on the `battleId` provided in the route parameter.
+ *     tags: [Admin]
+ *     security:
+ *       - BearerAuth: [] # Token-based authorization
+ *     parameters:
+ *       - in: path
+ *         name: battleId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the battle whose details are being fetched.
+ *         example: "6765300b1894e79a4f527034"
+ *     responses:
+ *       '200':
+ *         description: Successfully fetched the battle details.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     createdBy:
+ *                       type: string
+ *                     roomNo:
+ *                       type: string
+ *                       nullable: true
+ *                     status:
+ *                       type: string
+ *                     entryFee:
+ *                       type: number
+ *                     winnerAmount:
+ *                       type: number
+ *                     acceptedBy:
+ *                       type: string
+ *                       nullable: true
+ *                 example:
+ *                   statusCode: 200
+ *                   status: "success"
+ *                   data:
+ *                     _id: "6765300b1894e79a4f527034"
+ *                     createdBy: "675ea0acc649a318aae995be"
+ *                     roomNo: null
+ *                     status: "OPEN"
+ *                     entryFee: 200
+ *                     winnerAmount: 360
+ *                     acceptedBy: null
+ *       '400':
+ *         description: Bad request, invalid battle ID or other request error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 400
+ *                 status: "error"
+ *                 msg: "Invalid battle ID or request parameters."
+ *       '401':
+ *         description: Unauthorized, invalid or missing token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized. Token is missing or invalid."
+ *       '404':
+ *         description: Battle not found for the provided ID.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 404
+ *                 status: "error"
+ *                 msg: "Battle not found."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
 
-router.route("/start-battle-by-accepted-user/:battleId").get(verifyToken, startGameByAcceptedUser);
+router.route("/admin/details/:battleId").get(verifyToken, battleAdminDetails);
+
+/**
+ * @swagger
+ * /api/v1/battle/admin/list:
+ *   get:
+ *     summary: Get battle list
+ *     description: Retrieves a list of all battles for admin view.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Battle list fetched successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         description: Unique identifier for the battle.
+ *                       romNo:
+ *                         type: string
+ *                         description: Room number of the battle.
+ *                       description:
+ *                         type: string
+ *                         description: Description of the battle.
+ *                       status:
+ *                         type: string
+ *                         description: Status of the battle (e.g., 'OPEN', 'PLAYING', 'COMPLETED').
+ *               example:
+ *                 statusCode: 200
+ *                 status: "success"
+ *                 data:
+ *                   - _id: "btl123"
+ *                     roomNo: "123456"
+ *                     status: "OPEN"
+ *                   - _id: "btl124"
+ *                     roomNo: "Championship Clash"
+ *                     status: "COMPLETED"
+ *       '401':
+ *         description: Unauthorized, invalid, or missing token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 401
+ *                 status: "error"
+ *                 msg: "Unauthorized, invalid, or missing token."
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 statusCode:
+ *                   type: number
+ *                 status:
+ *                   type: string
+ *                 msg:
+ *                   type: string
+ *               example:
+ *                 statusCode: 500
+ *                 status: "error"
+ *                 msg: "Internal server error."
+ */
+
+router.route("/admin/list").get(verifyToken, battleListAdmin);
+
+router
+  .route("/start-battle-by-accepted-user/:battleId")
+  .get(verifyToken, startGameByAcceptedUser);
 
 module.exports = router;

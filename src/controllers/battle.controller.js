@@ -524,6 +524,45 @@ exports.battleListAdmin = async (req, res) => {
   }
 };
 
+//battle details for admin
+exports.battleAdminDetails = async (req, res) => {
+  try {
+    const { _id, role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M015"),
+      });
+    }
+    const { battleId } = req.params;
+    const battleDetails = await Battle.findOne({ _id: battleId }).populate(
+      "createdBy acceptedBy winner loser",
+      { _id: 1, name: 1 }
+    );
+    if (!battleDetails) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M041"),
+      });
+    }
+
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: getMessage("M040"),
+      data: battleDetails,
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
+
 // update final result
 exports.updateBattleResultByUser = async (req, res) => {
   try {
