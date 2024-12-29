@@ -7,6 +7,7 @@ const {
   getSettingsConfig,
   updateReferralAmountPercentage,
   getAllUsersList,
+  getUnverifiedUsersList,
 } = require("../controllers/settingsController");
 const Validator = require("../validators/settings.validators");
 const router = express.Router();
@@ -576,5 +577,10 @@ router.route("/settings").get(verifyToken, getSettingsConfig);
  */
 
 router.route("/all-users").get(verifyToken, getAllUsersList);
+
+
+router.route("/get-verification-request-list").get(verifyToken, getUnverifiedUsersList);
+
+
 
 module.exports = router;

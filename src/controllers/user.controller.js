@@ -239,7 +239,6 @@ exports.createAdminUser = async (req, res) => {
 
     return successHandler({
       res,
-      data: user,
       statusCode: 200,
       message: getMessage("M009"),
     });

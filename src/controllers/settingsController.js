@@ -195,8 +195,40 @@ exports.getAllUsersList = async (req, res) => {
     );
     return successHandler({
       res,
+      message: getMessage("M058"),
       statusCode: 200,
       data: users,
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
+
+exports.getUnverifiedUsersList = async (req, res) => {
+  try {
+    const { role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
+
+    const users = await User.find(
+      { role: "user", isActive: true, isKYCVerified: false },
+      { _id: 1, mobileNo: 1, kycDocument: 1 }
+    );
+    const usersList = users?.filter((user) => user?.kycDocument?.aadharNumber);
+    return successHandler({
+      res,
+      message: getMessage("M059"),
+      statusCode: 200,
+      data: usersList,
     });
   } catch (err) {
     return errorHandler({
