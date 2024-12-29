@@ -677,7 +677,7 @@ exports.updateBattleResultByAdmin = async (req, res) => {
       });
     }
 
-    const { battleId, winner, loser, isCancelled } = req.body;
+    const { battleId, winner, looser, isCancelled } = req.body;
     const battleDetails = await Battle.findById(battleId);
 
     if (!battleDetails) {
@@ -754,7 +754,7 @@ exports.updateBattleResultByAdmin = async (req, res) => {
         Object.assign(battleDetails, {
           matchStatus: isCancelled ? "CANCELLED" : "COMPLETED",
           winner,
-          loser,
+          loser: looser,
           status: "CLOSED",
           paymentStatus: "COMPLETED",
         });

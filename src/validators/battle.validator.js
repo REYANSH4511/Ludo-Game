@@ -23,7 +23,7 @@ const Validators = {
   ValidUpdateBattleResultByAdmin: Joi.object({
     battleId: Joi.string().required(),
     winner: Joi.string().allow(null).required(),
-    loser: Joi.string().allow(null).required(),
+    looser: Joi.string().allow(null).required(),
     isCancelled: Joi.boolean().required(),
   }),
   validBlockUser: Joi.object({
