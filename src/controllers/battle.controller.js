@@ -670,7 +670,7 @@ exports.updateBattleResultByAdmin = async (req, res) => {
 
     const { battleId, winner, loser, isCancelled } = req.body;
     const battleDetails = await Battle.findById(battleId);
-    console.log("673");
+
     if (!battleDetails) {
       return errorHandler({
         res,
@@ -678,7 +678,7 @@ exports.updateBattleResultByAdmin = async (req, res) => {
         message: getMessage("M041"),
       });
     }
-    console.log("681");
+
     if (
       isCancelled &&
       battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus ===
@@ -716,76 +716,42 @@ exports.updateBattleResultByAdmin = async (req, res) => {
           message: getMessage("M048"),
         });
       }
-      console.log("719");
-      const resolvePath = (obj, path) => {
-        return path
-          .split("?.") // Split the path by '?.'
-          .reduce((acc, key) => acc?.[key], obj); // Resolve the path dynamically
-      };
-      const updateMatchStatus = (userPath, status, rootObject) => {
-        // Convert string path to object if path is provided
-        let user =
-          typeof userPath === "string"
-            ? resolvePath(rootObject, userPath)
-            : userPath;
-
-        if (!user) return; // Guard clause for null or undefined user
-        if (typeof user.toObject === "function") {
-          user = user.toObject(); // Convert to object if necessary
-        }
-        console.log("user", user?.matchStatus);
-        if (!user?.matchStatus) {
-          user.matchStatus = status; // Update status if not already set
-        }
-      };
 
       if (isCancelled) {
-        console.log("Cancelled Match");
-        updateMatchStatus(
-          "battleDetails?.resultUpatedBy?.createdUser",
-          "CANCELLED",
-          { battleDetails } // Root object to resolve paths
-        );
-        updateMatchStatus(
-          "battleDetails?.resultUpatedBy?.acceptedUser",
-          "CANCELLED",
-          { battleDetails }
-        );
-      } else {
-        const winnerStatus = "WON";
-        const loserStatus = "LOSS";
-
-        if (winner === battleDetails?.createdBy) {
-          updateMatchStatus(
-            battleDetails?.resultUpatedBy?.createdUser,
-            winnerStatus
-          );
-          updateMatchStatus(
-            battleDetails?.resultUpatedBy?.acceptedUser,
-            loserStatus
-          );
-        } else if (winner === battleDetails?.acceptedBy) {
-          updateMatchStatus(
-            battleDetails?.resultUpatedBy?.createdUser,
-            loserStatus
-          );
-          updateMatchStatus(
-            battleDetails?.resultUpatedBy?.acceptedUser,
-            winnerStatus
-          );
+        if (!battleDetails?.resultUpatedBy?.createdUser?.matchStatus) {
+          battleDetails.resultUpatedBy.createdUser.matchStatus = "CANCELLED";
         }
-      }
-      console.log("759");
-      // Update match details
-      Object.assign(battleDetails, {
-        matchStatus: isCancelled ? "CANCELLED" : "COMPLETED",
-        winner,
-        loser,
-        status: "CLOSED",
-        paymentStatus: "COMPLETED",
-      });
+        if (!battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus) {
+          battleDetails.resultUpatedBy.acceptedUser.matchStatus = "CANCELLED";
+        }
+      } else {
+        if (winner === battleDetails?.createdBy) {
+          if (!battleDetails?.resultUpatedBy?.createdUser?.matchStatus) {
+            battleDetails.resultUpatedBy.createdUser.matchStatus = "WON";
+          }
+          if (!battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus) {
+            battleDetails.resultUpatedBy.acceptedUser.matchStatus = "LOSS";
+          }
+        } else if (winner === battleDetails?.acceptedBy) {
+          if (!battleDetails?.resultUpatedBy?.createdUser?.matchStatus) {
+            battleDetails.resultUpatedBy.createdUser.matchStatus = "LOSS";
+          }
+          if (!battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus) {
+            battleDetails.resultUpatedBy.acceptedUser.matchStatus = "WON";
+          }
+        }
 
-      await updateWinningAmountForWinner(battleDetails);
+        // Update match details
+        Object.assign(battleDetails, {
+          matchStatus: isCancelled ? "CANCELLED" : "COMPLETED",
+          winner,
+          loser,
+          status: "CLOSED",
+          paymentStatus: "COMPLETED",
+        });
+
+        await updateWinningAmountForWinner(battleDetails);
+      }
     }
     await battleDetails.save();
 

@@ -40,8 +40,8 @@ const updateWinningAmountForWinner = async (data) => {
       await createdUser.save();
       await acceptedUser.save();
     } else {
+      if (!data.winner) return;
       const userDetails = await User.findOne({ _id: data.winner });
-
       userDetails.balance.cashWon += data.winnerAmount;
 
       await Transaction.create({
