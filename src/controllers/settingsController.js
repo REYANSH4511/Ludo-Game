@@ -326,6 +326,30 @@ exports.adminDashboard = async (req, res) => {
       ...dateFilter,
     });
 
+    const pendingDepositTransaction = await Transaction.countDocuments({
+      status: "pending",
+      type: "deposit",
+      ...dateFilter,
+    });
+
+    const rejectedDepositRequest = await Transaction.countDocuments({
+      status: "rejected",
+      type: "deposit",
+      ...dateFilter,
+    });
+
+    const pendingWithdrawalTransaction = await Transaction.countDocuments({
+      status: "pending",
+      type: "withdraw",
+      ...dateFilter,
+    });
+
+    const rejectedWithdrawalRequest = await Transaction.countDocuments({
+      status: "rejected",
+      type: "withdraw",
+      ...dateFilter,
+    });
+
     const data = {
       totalUsers,
       activeUsers,
@@ -340,6 +364,10 @@ exports.adminDashboard = async (req, res) => {
       activeBattles,
       ongoingBattles,
       cancelledBattles,
+      pendingDepositTransaction,
+      rejectedDepositRequest,
+      pendingWithdrawalTransaction,
+      rejectedWithdrawalRequest,
     };
 
     return successHandler({
@@ -414,17 +442,23 @@ exports.penalty = async (req, res) => {
         message: getMessage("M002"),
       });
     }
+    user.balance.penalty += penalty;
+    user.balance.totalBalance -= penalty;
+    user.save();
     await Transaction.create({
       type: "withdraw",
       userId,
       isPenalty: true,
       amount: penalty,
+      status: "approved",
     });
+
     await Notification.create({
       userId,
       message: `You have been penalized for ${reason}`,
       title: "Penalty",
     });
+
     return successHandler({
       res,
       statusCode: 200,
