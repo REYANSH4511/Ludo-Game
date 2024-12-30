@@ -752,15 +752,17 @@ exports.updateBattleResultByAdmin = async (req, res) => {
 
         await updateWinningAmountForWinner(battleDetails);
       }
+
+      // Update match details
+      Object.assign(battleDetails, {
+        matchStatus: isCancelled ? "CANCELLED" : "COMPLETED",
+        winner,
+        loser: looser,
+        status: "CLOSED",
+        paymentStatus: "COMPLETED",
+      });
     }
-    // Update match details
-    Object.assign(battleDetails, {
-      matchStatus: isCancelled ? "CANCELLED" : "COMPLETED",
-      winner,
-      loser: looser,
-      status: "CLOSED",
-      paymentStatus: "COMPLETED",
-    });
+
     await battleDetails.save();
 
     return successHandler({
