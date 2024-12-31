@@ -15,6 +15,17 @@ const Validators = {
     upiQrCode: Joi.string().required(),
     upiId: Joi.string().required(),
   }),
+  validUploadKYCDocument: Joi.object({
+    name: Joi.string().required(),
+    frontPhoto: Joi.string().required(),
+    backPhoto: Joi.string().required(),
+    aadharNumber: Joi.string().required(),
+    mobileNo: Joi.string().required(),
+  }),
+  validBlockUser: Joi.object({
+    userId: Joi.string().required(),
+    block: Joi.boolean().required(),
+  }),
 };
 
 module.exports = Validators;

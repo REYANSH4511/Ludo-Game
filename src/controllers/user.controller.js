@@ -19,6 +19,13 @@ exports.generateOTP = async (req, res) => {
   const { mobileNo } = req.body;
   try {
     let userData = await User.findOne({ mobileNo });
+    if (!userData.isActive) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M065"),
+      });
+    }
     // let otp = Math.floor(100000 + Math.random() * 900000);
     let otp = 123456;
     const expiresAt = dayjs().add(5, "minute");
@@ -53,7 +60,9 @@ exports.generateOTP = async (req, res) => {
 
     return successHandler({
       res,
-      data: { isCouponApplied: user.referedBy ? true : false },
+      data: {
+        isCouponApplied: user.referedBy && !user.isVerified ? true : false,
+      },
       statusCode: 200,
       message: getMessage("M001"),
     });

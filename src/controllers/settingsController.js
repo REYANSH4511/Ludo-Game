@@ -181,7 +181,7 @@ exports.getSettingsConfig = async (req, res) => {
   }
 };
 
-exports.getAllUsersList = async (req, res) => {
+exports.getUsersList = async (req, res) => {
   try {
     const { role } = req.user;
     if (role === "user") {
@@ -425,7 +425,7 @@ exports.blockOrUnblockUsers = async (req, res) => {
     return successHandler({
       res,
       statusCode: 200,
-      message: getMessage("M061"),
+      message: getMessage(block ? "M061" : "M064"),
     });
   } catch (err) {
     return errorHandler({
@@ -455,9 +455,21 @@ exports.penalty = async (req, res) => {
         message: getMessage("M002"),
       });
     }
+    if (user.balance.totalBalance < penalty) {
+      if (user.balance.cashWon < penalty) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M043"),
+        });
+      }
+      user.balance.cashWon -= penalty;
+    } else {
+      user.balance.totalBalance -= penalty;
+    }
     user.balance.penalty += penalty;
-    user.balance.totalBalance -= penalty;
     user.save();
+
     await Transaction.create({
       type: "withdraw",
       userId,
@@ -482,6 +494,137 @@ exports.penalty = async (req, res) => {
       res,
       statusCode: 500,
       message: err.message,
+    });
+  }
+};
+
+exports.getAllUsersList = async (req, res) => {
+  try {
+    const { role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
+    const users = await User.find(
+      { role: "user" },
+      { _id: 1, name: 1, mobileNo: 1, createdAt: 1, isActive: 1 }
+    );
+    return successHandler({
+      res,
+      message: getMessage("M058"),
+      statusCode: 200,
+      data: users,
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
+
+exports.addBonus = async (req, res) => {
+  try {
+    const { role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
+    const { userId, amount } = req.body;
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M002"),
+      });
+    }
+
+    user.balance.totalBalance += amount;
+    user.save();
+
+    await Transaction.create({
+      type: "deposit",
+      userId,
+      amount,
+      status: "approved",
+      isBonus: true,
+    });
+
+    await Notification.create({
+      userId,
+      message: `You have received ${amount} bonus`,
+      title: "Bonus",
+    });
+
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: getMessage("M063"),
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
+
+exports.uploadKYCDocument = async (req, res) => {
+  try {
+    const { _id, role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
+    const { mobileNo, aadharNumber, name, frontPhoto, backPhoto } = req.body;
+
+    // Update user KYC document data
+    const updatedUser = await User.findOneAndUpdate(
+      { mobileNo, isActive: true },
+      {
+        $set: {
+          kycDocument: {
+            aadharNumber,
+            name,
+            frontPhoto,
+            backPhoto,
+          },
+          isKYCVerified: true,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: "User not found or update failed",
+      });
+    }
+
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: "KYC document uploaded successfully",
+    });
+  } catch (error) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: error.message,
     });
   }
 };

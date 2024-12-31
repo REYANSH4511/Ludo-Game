@@ -10,6 +10,8 @@ const {
   getUnverifiedUsersList,
   adminDashboard,
   blockOrUnblockUsers,
+  getUsersList,
+  uploadKYCDocument,
 } = require("../controllers/settingsController");
 const Validator = require("../validators/settings.validators");
 const router = express.Router();
@@ -578,7 +580,7 @@ router.route("/settings").get(verifyToken, getSettingsConfig);
  *                 msg: "Internal server error."
  */
 
-router.route("/all-users").get(verifyToken, getAllUsersList);
+router.route("/all-users").get(verifyToken, getUsersList);
 
 router
   .route("/get-verification-request-list")
@@ -590,7 +592,10 @@ router
   .route("/block-user")
   .post(verifyToken, Validator("validBlockUser"), blockOrUnblockUsers);
 
+router.route("/all-users-list").get(verifyToken, getAllUsersList);
 
-
+router
+  .route("/upload-kyc-document")
+  .get(Validator("validUploadKYCDocument"), verifyToken, uploadKYCDocument);
 
 module.exports = router;

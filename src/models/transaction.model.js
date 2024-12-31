@@ -63,6 +63,10 @@ const transactionSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isBonus: {
+      type: Boolean,
+      default: false,
+    },
     upiId: {
       type: String,
     },
