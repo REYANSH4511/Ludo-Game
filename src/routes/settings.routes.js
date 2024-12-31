@@ -12,6 +12,8 @@ const {
   blockOrUnblockUsers,
   getUsersList,
   uploadKYCDocument,
+  addBonus,
+  penalty,
 } = require("../controllers/settingsController");
 const Validator = require("../validators/settings.validators");
 const router = express.Router();
@@ -596,6 +598,14 @@ router.route("/all-users-list").get(verifyToken, getAllUsersList);
 
 router
   .route("/upload-kyc-document")
-  .get(Validator("validUploadKYCDocument"), verifyToken, uploadKYCDocument);
+  .post(Validator("validUploadKYCDocument"), verifyToken, uploadKYCDocument);
+
+router
+  .route("/add-bonus")
+  .post(Validator("validAddBonus"), verifyToken, addBonus);
+
+router
+  .route("/add-penalty")
+  .post(Validator("validAddBonus"), verifyToken, penalty);
 
 module.exports = router;

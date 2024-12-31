@@ -1,5 +1,6 @@
 const Joi = require("joi");
 const { errorHandler } = require("../utils/responseHandler");
+const { penalty } = require("../controllers/settingsController");
 
 const Validators = {
   validSocialMediaLinks: Joi.object({
@@ -25,6 +26,11 @@ const Validators = {
   validBlockUser: Joi.object({
     userId: Joi.string().required(),
     block: Joi.boolean().required(),
+  }),
+  validAddBonus: Joi.object({
+    userId: Joi.string().required(),
+    amount: Joi.number().required(),
+    reason: Joi.string(),
   }),
 };
 

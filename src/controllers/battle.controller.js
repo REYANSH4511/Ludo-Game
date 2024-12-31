@@ -377,6 +377,7 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
 exports.startGameByAcceptedUser = async (req, res) => {
   try {
     const { _id, role } = req.user;
+
     if (!role === "user") {
       return errorHandler({
         res,
@@ -384,7 +385,9 @@ exports.startGameByAcceptedUser = async (req, res) => {
         message: getMessage("M015"),
       });
     }
+
     const battleDetails = await Battle.findOne({ _id: req.params.battleId });
+
     if (!battleDetails) {
       return errorHandler({
         res,
@@ -392,6 +395,7 @@ exports.startGameByAcceptedUser = async (req, res) => {
         message: getMessage("M015"),
       });
     }
+
     if (!battleDetails?.isBattleRequestAccepted) {
       return errorHandler({
         res,
@@ -405,7 +409,7 @@ exports.startGameByAcceptedUser = async (req, res) => {
       battleDetails?.entryFee,
       battleDetails._id
     );
-
+    battleDetails.aceptedDate = new Date();
     battleDetails.status = "PLAYING";
     await battleDetails.save();
 

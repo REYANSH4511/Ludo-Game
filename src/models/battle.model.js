@@ -54,6 +54,10 @@ const battleSchema = new Schema(
       ref: "User",
       default: null,
     },
+    aceptedDate: {
+      type: Date,
+      default: null,
+    },
     matchStatus: {
       type: String,
       enum: ["COMPLETED", "CANCELLED", "PENDING"],

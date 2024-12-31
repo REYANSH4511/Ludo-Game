@@ -446,7 +446,7 @@ exports.penalty = async (req, res) => {
         message: getMessage("M015"),
       });
     }
-    const { userId, penalty, reason } = req.body;
+    const { userId, amount, reason } = req.body;
     const user = await User.findOne({ _id: userId });
     if (!user) {
       return errorHandler({
@@ -455,34 +455,36 @@ exports.penalty = async (req, res) => {
         message: getMessage("M002"),
       });
     }
-    if (user.balance.totalBalance < penalty) {
-      if (user.balance.cashWon < penalty) {
+    if (user.balance.totalBalance < amount) {
+      if (user.balance.cashWon < amount) {
         return errorHandler({
           res,
           statusCode: 400,
           message: getMessage("M043"),
         });
       }
-      user.balance.cashWon -= penalty;
+      user.balance.cashWon -= amount;
     } else {
-      user.balance.totalBalance -= penalty;
+      user.balance.totalBalance -= amount;
     }
-    user.balance.penalty += penalty;
+    user.balance.penalty += amount;
     user.save();
 
     await Transaction.create({
       type: "withdraw",
       userId,
       isPenalty: true,
-      amount: penalty,
+      amount: amount,
       status: "approved",
     });
 
-    await Notification.create({
-      userId,
-      message: `You have been penalized for ${reason}`,
-      title: "Penalty",
-    });
+    if (reason) {
+      await Notification.create({
+        userId,
+        message: `You have been penalized for ${reason}`,
+        title: "Penalty",
+      });
+    }
 
     return successHandler({
       res,
