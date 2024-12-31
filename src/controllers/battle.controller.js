@@ -328,6 +328,7 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
 
       if (battleDetails.createdBy.toString() === _id.toString()) {
         payload.acceptedBy = null;
+        payload.aceptedDate = null;
         payload.isBattleRequestAccepted = false;
       } else if (battleDetails.acceptedBy?.toString() === _id.toString()) {
         payload.resultUpatedBy = payload.resultUpatedBy || {};
