@@ -62,7 +62,7 @@ const battleSchema = new Schema(
       ref: "User",
       default: null,
     },
-    aceptedDate: {
+    acceptedDate: {
       type: Date,
       default: null,
     },
@@ -103,9 +103,9 @@ const battleSchema = new Schema(
 battleSchema.pre("save", function (next) {
   if (this.isModified("acceptedBy")) {
     if (this.acceptedBy) {
-      this.aceptedDate = new Date(); // Set current date
+      this.acceptedDate = new Date(); // Set current date
     } else {
-      this.aceptedDate = null; // Set to null
+      this.acceptedDate = null; // Set to null
     }
   }
   next();
