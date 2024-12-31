@@ -12,6 +12,10 @@ const resultSchema = new Schema({
     cancellationReason: {
       type: String,
     },
+    updatedAt: {
+      type: Date,
+      default: Date.now(),
+    },
   },
   createdUser: {
     matchStatus: {
@@ -23,6 +27,10 @@ const resultSchema = new Schema({
     },
     cancellationReason: {
       type: String,
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now(),
     },
   },
 });
@@ -91,6 +99,19 @@ const battleSchema = new Schema(
   }
 );
 
+
+battleSchema.pre("save", function (next) {
+  if (this.isModified("acceptedBy")) {
+    if (this.acceptedBy) {
+      this.aceptedDate = new Date(); // Set current date
+    } else {
+      this.aceptedDate = null; // Set to null
+    }
+  }
+  next();
+});
+
 const Battle = model("battle", battleSchema);
+
 
 module.exports = Battle;

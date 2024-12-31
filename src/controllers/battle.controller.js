@@ -1,4 +1,4 @@
-const { default: mongoose } = require("mongoose");
+const { ObjectId } = require("mongodb");
 const Battle = require("../models/battle.model");
 const getMessage = require("../utils/message");
 const { errorHandler, successHandler } = require("../utils/responseHandler");
@@ -409,7 +409,6 @@ exports.startGameByAcceptedUser = async (req, res) => {
       battleDetails?.entryFee,
       battleDetails._id
     );
-    battleDetails.aceptedDate = new Date();
     battleDetails.status = "PLAYING";
     await battleDetails.save();
 
@@ -559,11 +558,176 @@ exports.battleAdminDetails = async (req, res) => {
       });
     }
     const { battleId } = req.params;
-    const battleDetails = await Battle.findOne({ _id: battleId }).populate(
-      "createdBy acceptedBy winner loser",
-      { _id: 1, name: 1 }
-    );
-    if (!battleDetails) {
+
+    const battleDetails = await Battle.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(battleId),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "createdBy",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+              },
+            },
+          ],
+          as: "createdBy",
+        },
+      },
+      {
+        $unwind: {
+          path: "$createdBy",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "acceptedBy",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+              },
+            },
+          ],
+          as: "acceptedBy",
+        },
+      },
+      {
+        $unwind: {
+          path: "$acceptedBy",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "winner",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+              },
+            },
+          ],
+          as: "winner",
+        },
+      },
+      {
+        $unwind: {
+          path: "$winner",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "loser",
+          foreignField: "_id",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+              },
+            },
+          ],
+          as: "loser",
+        },
+      },
+      {
+        $unwind: {
+          path: "$loser",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: "transactions",
+          localField: "createdBy._id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $match: {
+                battleId: new ObjectId(battleId),
+              },
+            },
+            {
+              $project: {
+                amount: 1,
+                _id: 0,
+              },
+            },
+          ],
+          as: "createdHoldAmount",
+        },
+      },
+      {
+        $unwind: {
+          path: "$createdHoldAmount",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          createdHoldAmount: {
+            $cond: {
+              if: { $eq: ["$status", "CLOSED"] },
+              then: 0,
+              else: "$createdHoldAmount.amount",
+            },
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "transactions",
+          localField: "acceptedBy._id",
+          foreignField: "userId",
+          pipeline: [
+            {
+              $match: {
+                battleId: new ObjectId(battleId),
+              },
+            },
+            {
+              $project: {
+                amount: 1,
+                _id: 0,
+              },
+            },
+          ],
+          as: "acceptedHoldAmount",
+        },
+      },
+      {
+        $unwind: {
+          path: "$acceptedHoldAmount",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          acceptedHoldAmount: {
+            $cond: {
+              if: { $eq: ["$status", "CLOSED"] },
+              then: 0,
+              else: "$acceptedHoldAmount.amount",
+            },
+          },
+        },
+      },
+    ]);
+
+    if (battleDetails.length === 0) {
       return errorHandler({
         res,
         statusCode: 400,
@@ -575,7 +739,7 @@ exports.battleAdminDetails = async (req, res) => {
       res,
       statusCode: 200,
       message: getMessage("M040"),
-      data: battleDetails,
+      data: battleDetails[0],
     });
   } catch (err) {
     return errorHandler({
