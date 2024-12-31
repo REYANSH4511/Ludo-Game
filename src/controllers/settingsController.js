@@ -2,6 +2,7 @@ const Battle = require("../models/battle.model");
 const Settings = require("../models/settings.model");
 const Transaction = require("../models/transaction.model");
 const User = require("../models/user.model");
+const Notification = require("../models/notifications.model");
 const getMessage = require("../utils/message");
 const { errorHandler, successHandler } = require("../utils/responseHandler");
 
