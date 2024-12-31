@@ -570,7 +570,7 @@ exports.addBonus = async (req, res) => {
     return successHandler({
       res,
       statusCode: 200,
-      message: getMessage("M063"),
+      message: getMessage("M066"),
     });
   } catch (err) {
     return errorHandler({

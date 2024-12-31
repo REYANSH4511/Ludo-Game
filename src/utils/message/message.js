@@ -64,4 +64,5 @@ exports.messageList = {
   M063: "Invalid amount!",
   M064: "User unblocked successfully!",
   M065: "User blocked! Contact admin for more details!",
+  M066 : "Bonus applied successfully!",
 };
