@@ -36,7 +36,7 @@ const transactionSchema = new Schema(
     userDetails: userDetailsSchema,
     type: {
       type: String,
-      enum: ["deposit", "withdraw", "referral"],
+      enum: ["deposit", "withdraw", "referral", "bonus", "penalty"],
       required: true,
     },
     isReferral: {
@@ -56,14 +56,6 @@ const transactionSchema = new Schema(
       default: false,
     },
     isWonCash: {
-      type: Boolean,
-      default: false,
-    },
-    isPenalty: {
-      type: Boolean,
-      default: false,
-    },
-    isBonus: {
       type: Boolean,
       default: false,
     },

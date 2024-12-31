@@ -887,7 +887,7 @@ exports.updateBattleResultByAdmin = async (req, res) => {
 
       await user.save();
     } else {
-      if (battleDetails?.status !== "PLAYING") {
+      if (battleDetails?.matchStatus !== "PENDING") {
         return errorHandler({
           res,
           statusCode: 400,
@@ -896,31 +896,51 @@ exports.updateBattleResultByAdmin = async (req, res) => {
       }
 
       if (isCancelled) {
-        if (!battleDetails?.resultUpatedBy?.createdUser?.matchStatus) {
+        if (
+          battleDetails?.resultUpatedBy?.createdUser?.matchStatus !==
+          "CANCELLED"
+        ) {
           battleDetails.resultUpatedBy.createdUser.matchStatus = "CANCELLED";
+          battleDetails.resultUpatedBy.createdUser.updatedAt = new Date();
         }
-        if (!battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus) {
+        if (
+          battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus !==
+          "CANCELLED"
+        ) {
           battleDetails.resultUpatedBy.acceptedUser.matchStatus = "CANCELLED";
+          battleDetails.resultUpatedBy.acceptedUser.updatedAt = new Date();
         }
       } else {
-        if (winner === battleDetails?.createdBy) {
-          if (!battleDetails?.resultUpatedBy?.createdUser?.matchStatus) {
+        if (winner?.toString() === battleDetails?.createdBy?.toString()) {
+          if (
+            battleDetails?.resultUpatedBy?.createdUser?.matchStatus !== "WON"
+          ) {
             battleDetails.resultUpatedBy.createdUser.matchStatus = "WON";
+            battleDetails.resultUpatedBy.createdUser.updatedAt = new Date();
           }
-          if (!battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus) {
+          if (
+            battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus !== "LOSS"
+          ) {
             battleDetails.resultUpatedBy.acceptedUser.matchStatus = "LOSS";
+            battleDetails.resultUpatedBy.acceptedUser.updatedAt = new Date();
           }
-        } else if (winner === battleDetails?.acceptedBy) {
-          if (!battleDetails?.resultUpatedBy?.createdUser?.matchStatus) {
+        } else if (
+          winner?.toString() === battleDetails?.acceptedBy?.toString()
+        ) {
+          if (
+            battleDetails?.resultUpatedBy?.createdUser?.matchStatus !== "LOSS"
+          ) {
             battleDetails.resultUpatedBy.createdUser.matchStatus = "LOSS";
           }
-          if (!battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus) {
+          if (
+            battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus !== "WON"
+          ) {
             battleDetails.resultUpatedBy.acceptedUser.matchStatus = "WON";
           }
         }
-
-        await updateWinningAmountForWinner(battleDetails);
       }
+
+      await updateWinningAmountForWinner(battleDetails);
 
       // Update match details
       Object.assign(battleDetails, {

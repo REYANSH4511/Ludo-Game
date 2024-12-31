@@ -39,11 +39,29 @@ const updateWinningAmountForWinner = async (data) => {
     ) {
       const createdUser = await User.findOne({ _id: data.createdBy });
       const acceptedUser = await User.findOne({ _id: data.acceptedBy });
-      createdUser.balance.totalBalance += data.entryFee;
-      acceptedUser.balance.totalBalance += data.entryFee;
+
+      const createdUserTransaction = await Transaction.deleteOne({
+        battleId: data?._id,
+        userId: data.createdBy,
+      });
+      
+      if (createdUserTransaction.deletedCount > 0) {
+        createdUser.balance.totalBalance += data.entryFee;
+      }
+
+      const acceptedUserTransaction = await Transaction.deleteOne({
+        battleId: data?._id,
+        userId: data.acceptedBy,
+      });
+      
+      if (acceptedUserTransaction.deletedCount > 0) {
+        acceptedUser.balance.totalBalance += data.entryFee;
+      }
+
       await createdUser.save();
       await acceptedUser.save();
     } else {
+  
       if (!data.winner) return;
       const userDetails = await User.findOne({ _id: data.winner });
       userDetails.balance.cashWon += data.winnerAmount;

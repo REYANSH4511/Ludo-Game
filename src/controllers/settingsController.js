@@ -472,9 +472,8 @@ exports.penalty = async (req, res) => {
     user.save();
 
     await Transaction.create({
-      type: "withdraw",
+      type: "penalty",
       userId,
-      isPenalty: true,
       amount: amount,
       status: "approved",
     });
@@ -554,11 +553,10 @@ exports.addBonus = async (req, res) => {
     user.save();
 
     await Transaction.create({
-      type: "deposit",
+      type: "bonus",
       userId,
       amount,
       status: "approved",
-      isBonus: true,
     });
 
     await Notification.create({

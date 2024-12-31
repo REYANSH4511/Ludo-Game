@@ -1,6 +1,6 @@
 const Battle = require("../models/battle.model");
 const { updateWinningAmountForWinner } = require("../utils/battleHelper");
-
+const dayjs = require("dayjs");
 exports.updateBattleResult = async () => {
   try {
     const battles = await Battle.find({ status: "PLAYING" });
@@ -44,6 +44,69 @@ exports.updateBattleResult = async () => {
       }
     }
   } catch (err) {
-    console.log(err);
+    console.log("error", err);
+  }
+};
+
+exports.updateBttleResultNotUpdatedByUser = async () => {
+  try {
+    const thirtyMinutesAgo = dayjs().subtract(30, "minute").toDate();
+
+    const battles = await Battle.find({
+      status: { $in: ["OPEN", "PLAYING"] },
+      createdAt: { $lte: thirtyMinutesAgo },
+    });
+
+    if (battles.length === 0) {
+      return;
+    }
+
+    for (const battle of battles) {
+      let isModified = false;
+
+      if (!battle.resultUpatedBy) {
+        battle.resultUpatedBy = {};
+        isModified = true;
+      }
+
+      if (
+        !battle.resultUpatedBy.acceptedUser ||
+        !battle.resultUpatedBy.acceptedUser.matchStatus
+      ) {
+        battle.resultUpatedBy.acceptedUser = {
+          matchStatus: "CANCELLED",
+          screenShot: null,
+          cancellationReason: null,
+          updatedAt: new Date(),
+        };
+        isModified = true;
+      }
+
+      if (
+        !battle.resultUpatedBy.createdUser ||
+        !battle.resultUpatedBy.createdUser.matchStatus
+      ) {
+        battle.resultUpatedBy.createdUser = {
+          matchStatus: "CANCELLED",
+          screenShot: null,
+          cancellationReason: null,
+          updatedAt: new Date(),
+        };
+        isModified = true;
+      }
+
+      if (battle.status !== "CLOSED") {
+        battle.status = "CLOSED";
+        isModified = true;
+      }
+
+      if (isModified) {
+        battle.markModified("resultUpatedBy");
+        battle.markModified("status");
+        await battle.save();
+      }
+    }
+  } catch (err) {
+    console.error("Error updating battles:", err);
   }
 };
