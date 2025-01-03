@@ -19,18 +19,20 @@ exports.generateOTP = async (req, res) => {
   const { mobileNo } = req.body;
   try {
     let userData = await User.findOne({ mobileNo });
-    if (!userData.isActive) {
-      return errorHandler({
-        res,
-        statusCode: 400,
-        message: getMessage("M065"),
-      });
-    }
+
     // let otp = Math.floor(100000 + Math.random() * 900000);
     let otp = 123456;
     const expiresAt = dayjs().add(5, "minute");
     if (!userData) {
       userData = await User.create({ mobileNo });
+    }
+
+    if (!userData?.isActive) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M065"),
+      });
     }
 
     const smsData = {
