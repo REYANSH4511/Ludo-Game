@@ -47,7 +47,7 @@ const battleSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["OPEN", "PLAYING", "CLOSED"],
+      enum: ["OPEN", "PLAYING", "CLOSED", "CONFLICT"],
       default: "OPEN",
     },
     entryFee: {
@@ -68,7 +68,7 @@ const battleSchema = new Schema(
     },
     matchStatus: {
       type: String,
-      enum: ["COMPLETED", "CANCELLED", "PENDING", "CONFLICT"],
+      enum: ["COMPLETED", "CANCELLED", "PENDING"],
       default: "PENDING",
     },
     isBattleRequestAccepted: {
