@@ -14,7 +14,7 @@ const resultSchema = new Schema({
     },
     updatedAt: {
       type: Date,
-      default: Date.now(),
+      default: new Date(),
     },
   },
   createdUser: {
@@ -30,7 +30,7 @@ const resultSchema = new Schema({
     },
     updatedAt: {
       type: Date,
-      default: Date.now(),
+      default: new Date(),
     },
   },
 });
@@ -99,7 +99,6 @@ const battleSchema = new Schema(
   }
 );
 
-
 battleSchema.pre("save", function (next) {
   if (this.isModified("acceptedBy")) {
     if (this.acceptedBy) {
@@ -112,6 +111,5 @@ battleSchema.pre("save", function (next) {
 });
 
 const Battle = model("battle", battleSchema);
-
 
 module.exports = Battle;
