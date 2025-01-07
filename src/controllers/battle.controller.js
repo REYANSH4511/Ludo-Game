@@ -10,6 +10,7 @@ const {
 } = require("../utils/battleHelper");
 const Transaction = require("../models/transaction.model");
 const Settings = require("../models/settings.model");
+const BattleCommission = require("../models/battleCommission.model");
 
 // create battle
 exports.createBattle = async (req, res) => {
@@ -77,12 +78,20 @@ exports.createBattle = async (req, res) => {
 
     const settings = await Settings.findOne({}, { battleEarningPercentage: 1 });
     const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
-    const winnerAmount = amount * 2 - amount * (battleEarningPercentage / 100);
+    const commisionAmount = amount * (battleEarningPercentage / 100);
 
-    await Battle.create({
+    const winnerAmount = amount * 2 - commisionAmount;
+
+    const battleDetails = await Battle.create({
       createdBy: _id,
       entryFee: amount,
       winnerAmount,
+    });
+
+    await BattleCommission.create({
+      amount: commisionAmount,
+      commissionPercentage: battleEarningPercentage,
+      battleId: battleDetails._id,
     });
 
     return successHandler({
@@ -121,7 +130,7 @@ exports.deleteBattle = async (req, res) => {
     }
 
     await Battle.deleteOne({ _id: battleId });
-
+    await BattleCommission.deleteOne({ battleId: battleId });
     return successHandler({
       res,
       statusCode: 200,
@@ -902,7 +911,10 @@ exports.updateBattleResultByAdmin = async (req, res) => {
 
       await user.save();
     } else {
-      if (battleDetails?.matchStatus !== "PENDING") {
+      if (
+        battleDetails?.matchStatus !== "PENDING" &&
+        battleDetails.status !== "CONFLICT"
+      ) {
         return errorHandler({
           res,
           statusCode: 400,
@@ -962,7 +974,6 @@ exports.updateBattleResultByAdmin = async (req, res) => {
         matchStatus: isCancelled ? "CANCELLED" : "COMPLETED",
         winner,
         loser: looser,
-        status: "CLOSED",
         paymentStatus: "COMPLETED",
       });
     }

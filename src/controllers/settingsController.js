@@ -5,6 +5,7 @@ const User = require("../models/user.model");
 const Notification = require("../models/notifications.model");
 const getMessage = require("../utils/message");
 const { errorHandler, successHandler } = require("../utils/responseHandler");
+const BattleCommission = require("../models/battleCommission.model");
 
 // update social media links
 exports.updateSocialMediaLinks = async (req, res) => {
@@ -252,152 +253,142 @@ exports.adminDashboard = async (req, res) => {
         message: getMessage("M015"),
       });
     }
+
     const { fromDate, toDate } = req.query;
     const dateFilter =
       fromDate && toDate
         ? {
             createdAt: {
               $gte: new Date(fromDate).setHours(0, 0, 0, 0),
-              $lte: new Date(toDate).setHours(23, 59, 59, 0),
+              $lte: new Date(toDate).setHours(23, 59, 59, 999),
             },
           }
         : {};
 
-    const totalUsers = await User.countDocuments({
-      role: "user",
-      ...dateFilter,
-    });
-    const activeUsers = await User.countDocuments({
-      role: "user",
-      isActive: true,
-      ...dateFilter,
-    });
-    const blockedUsers = await User.countDocuments({
-      role: "user",
-      isActive: false,
-      ...dateFilter,
-    });
+    const getCount = async (model, filter) =>
+      await model.countDocuments(filter);
 
-    const totalAdmins = await User.countDocuments({
-      role: "admin",
-      ...dateFilter,
-    });
-    const activeAdmins = await User.countDocuments({
-      role: "admin",
-      isActive: true,
-      ...dateFilter,
-    });
-    const blockedAdmins = await User.countDocuments({
-      role: "admin",
-      isActive: false,
-      ...dateFilter,
-    });
+    const getAggregateTotal = async (model, match, field) => {
+      const result = await model.aggregate([
+        { $match: match },
+        { $group: { _id: null, total: { $sum: `$${field}` } } },
+      ]);
+      return result[0]?.total || 0;
+    };
 
-    const totalTransactions = await Transaction.countDocuments({
-      isReferral: false,
-      ...dateFilter,
-    });
-    const totalDepositsAmount = await Transaction.aggregate([
-      {
-        $match: {
-          type: "deposit",
-          isReferral: false,
-          ...dateFilter,
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          totalAmount: { $sum: "$amount" },
-        },
-      },
+    const [
+      totalUsers,
+      activeUsers,
+      blockedUsers,
+      totalAdmins,
+      activeAdmins,
+      blockedAdmins,
+      totalTransactions,
+      totalDeposits,
+      totalWithdrawals,
+      totalBattle,
+      activeBattles,
+      ongoingBattles,
+      cancelledBattles,
+      completedBattles,
+      pendingDepositTransaction,
+      rejectedDepositRequest,
+      pendingWithdrawalTransaction,
+      rejectedWithdrawalRequest,
+      totalWithdraw,
+      totalCommission,
+      totalReferral,
+      totalBonus,
+    ] = await Promise.all([
+      getCount(User, { role: "user", ...dateFilter }),
+      getCount(User, { role: "user", isActive: true, ...dateFilter }),
+      getCount(User, { role: "user", isActive: false, ...dateFilter }),
+      getCount(User, { role: "admin", ...dateFilter }),
+      getCount(User, { role: "admin", isActive: true, ...dateFilter }),
+      getCount(User, { role: "admin", isActive: false, ...dateFilter }),
+      getCount(Transaction, { isReferral: false, ...dateFilter }),
+      getAggregateTotal(
+        Transaction,
+        { type: "deposit", isReferral: false, ...dateFilter },
+        "amount"
+      ),
+      getAggregateTotal(
+        Transaction,
+        { type: "withdraw", isReferral: false, ...dateFilter },
+        "amount"
+      ),
+      getCount(Battle, { ...dateFilter }),
+      getCount(Battle, { status: "PLAYING", ...dateFilter }),
+      getCount(Battle, {
+        status: "PLAYING",
+        isBattleRequestAccepted: true,
+        ...dateFilter,
+      }),
+      getCount(Battle, { status: "CANCELLED", ...dateFilter }),
+      getCount(Battle, {
+        status: "CLOSED",
+        matchStatus: "COMPLETED",
+        ...dateFilter,
+      }),
+      getCount(Transaction, {
+        status: "pending",
+        type: "deposit",
+        ...dateFilter,
+      }),
+      getCount(Transaction, {
+        status: "rejected",
+        type: "deposit",
+        ...dateFilter,
+      }),
+      getCount(Transaction, {
+        status: "pending",
+        type: "withdraw",
+        ...dateFilter,
+      }),
+      getCount(Transaction, {
+        status: "rejected",
+        type: "withdraw",
+        ...dateFilter,
+      }),
+      getAggregateTotal(
+        Transaction,
+        { type: "withdraw", ...dateFilter },
+        "amount"
+      ),
+      getAggregateTotal(BattleCommission, {}, "amount"),
+      getAggregateTotal(
+        Transaction,
+        { type: "deposit", isReferral: true, ...dateFilter },
+        "amount"
+      ),
+      getAggregateTotal(
+        Transaction,
+        { type: "bonus", ...dateFilter },
+        "amount"
+      ),
     ]);
 
-    const totalDeposits = totalDepositsAmount[0]?.totalAmount || 0;
+    const userBalances = await User.find(
+      { role: "user", isActive: true },
+      { balance: 1 }
+    );
+    const totalWalletBalance = userBalances.reduce(
+      (total, user) => total + user.balance.totalBalance + user.balance.cashWon,
+      0
+    );
+    const pendingReferralAmount = userBalances.reduce(
+      (total, user) => total + user.balance.referralEarning,
+      0
+    );
 
-    const totalWithdrawalsAmount = await Transaction.aggregate([
-      {
-        $match: {
-          type: "withdraw",
-          isReferral: false,
-          ...dateFilter,
-        },
-      },
-      {
-        $group: {
-          _id: null, // Group all matching documents
-          totalAmount: { $sum: "$amount" }, // Sum up the 'amount' field
-        },
-      },
-    ]);
-
-    const totalWithdrawals = totalWithdrawalsAmount[0]?.totalAmount || 0;
-
-    const totalBattle = await Battle.countDocuments({
-      ...dateFilter,
-    });
-    const activeBattles = await Battle.countDocuments({
-      status: "PLAYING",
-      ...dateFilter,
-    });
-
-    const ongoingBattles = await Battle.countDocuments({
-      status: "PLAYING",
-      isBattleRequestAccepted: true,
-      ...dateFilter,
-    });
-
-    const cancelledBattles = await Battle.countDocuments({
-      CANCELLED: "CANCELLED",
-      ...dateFilter,
-    });
-
-    const completedBattles = await Battle.countDocuments({
-      status: "CLOSED",
-      matchStatus: "COMPLETED",
-      ...dateFilter,
-    });
-
-    const pendingDepositTransaction = await Transaction.countDocuments({
-      status: "pending",
-      type: "deposit",
-      ...dateFilter,
-    });
-
-    const rejectedDepositRequest = await Transaction.countDocuments({
-      status: "rejected",
-      type: "deposit",
-      ...dateFilter,
-    });
-
-    const pendingWithdrawalTransaction = await Transaction.countDocuments({
-      status: "pending",
-      type: "withdraw",
-      ...dateFilter,
-    });
-
-    const rejectedWithdrawalRequest = await Transaction.countDocuments({
-      status: "rejected",
-      type: "withdraw",
-      ...dateFilter,
-    });
-
-    const totalWithdrawAmount = await Transaction.aggregate([
-      {
-        $match: {
-          type: "withdraw",
-          ...dateFilter,
-        },
-      },
-      {
-        $group: {
-          _id: null, // Group all matching documents
-          totalAmount: { $sum: "$amount" }, // Sum up the 'amount' field
-        },
-      },
-    ]);
-
-    const totalWithdraw = totalWithdrawAmount[0]?.totalAmount || 0;
+    const holdUserBalances = await User.find(
+      { role: "user", isActive: false },
+      { balance: 1 }
+    );
+    const holdBalance = holdUserBalances.reduce(
+      (total, user) => total + user.balance.totalBalance + user.balance.cashWon,
+      0
+    );
 
     const data = {
       totalUsers,
@@ -413,12 +404,18 @@ exports.adminDashboard = async (req, res) => {
       activeBattles,
       ongoingBattles,
       cancelledBattles,
+      completedBattles,
       pendingDepositTransaction,
       rejectedDepositRequest,
       pendingWithdrawalTransaction,
       rejectedWithdrawalRequest,
-      completedBattles,
       totalWithdraw,
+      totalCommission,
+      totalReferral,
+      totalBonus,
+      totalWalletBalance,
+      pendingReferralAmount,
+      holdBalance,
     };
 
     return successHandler({
@@ -428,11 +425,7 @@ exports.adminDashboard = async (req, res) => {
       message: getMessage("M060"),
     });
   } catch (err) {
-    return errorHandler({
-      res,
-      statusCode: 500,
-      message: err.message,
-    });
+    return errorHandler({ res, statusCode: 500, message: err.message });
   }
 };
 

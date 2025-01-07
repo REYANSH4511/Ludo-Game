@@ -68,7 +68,7 @@ const battleSchema = new Schema(
     },
     matchStatus: {
       type: String,
-      enum: ["COMPLETED", "CANCELLED", "PENDING"],
+      enum: ["COMPLETED", "CANCELLED", "PENDING", "CONFLICT"],
       default: "PENDING",
     },
     isBattleRequestAccepted: {

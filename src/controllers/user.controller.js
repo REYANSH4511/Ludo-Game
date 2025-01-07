@@ -41,16 +41,26 @@ exports.generateOTP = async (req, res) => {
       language: "english",
       numbers: mobileNo,
     };
-    await axios
-      .post("https://www.fast2sms.com/dev/bulkV2", smsData, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: process.env.FAST2SMS_API_KEY,
-        },
-      })
+
+    const options = {
+      method: "POST",
+      headers: {
+        clientId: process.env.OPTPLESS_CLIENT_ID,
+        clientSecret: process.env.OTPLESS_CLIENT_SECRET,
+        "Content-Type": "application/json",
+      },
+      body: '{"phoneNumber":"' + mobileNo + '","channels":["SMS"]',
+    };
+
+    await fetch("https://auth.otpless.app/auth/v1/initiate/otp", options)
+      .then((response) => response.json())
+      .then((response) => console.log(response))
       .then((response) => {
+        console.log(response);
         console.log("OTP sent successfully");
+      })
+      .catch((error) => {
+        console.log(error);
       });
 
     await OTP.findOneAndUpdate(

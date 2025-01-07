@@ -95,8 +95,8 @@ exports.updateBttleResultNotUpdatedByUser = async () => {
         isModified = true;
       }
 
-      if (battle.status !== "CLOSED") {
-        battle.status = "CLOSED";
+      if (battle.status !== "CLOSED" || battle.status !== "CONFLICT") {
+        battle.status = "CONFLICT";
         isModified = true;
       }
 
