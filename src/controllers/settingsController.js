@@ -629,3 +629,38 @@ exports.uploadKYCDocument = async (req, res) => {
     });
   }
 };
+
+exports.updateBattleEarningPercentage = async (req, res) => {
+  try {
+    const { role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
+    const { percentage } = req.body;
+
+    await Settings.updateOne(
+      {},
+      {
+        $set: {
+          battleEarningPercentage: percentage,
+        },
+      }
+    );
+
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: getMessage("M067"),
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: error.message,
+    });
+  }
+};

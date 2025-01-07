@@ -10,7 +10,7 @@ const Validators = {
     telegramLink: Joi.string(),
   }),
   validUpdateReferralAmountPercentage: Joi.object({
-    referralAmountPercentage: Joi.number(),
+    referralAmountPercentage: Joi.number().required(),
   }),
   validUpdatePaymentSettings: Joi.object({
     upiQrCode: Joi.string().required(),
@@ -31,6 +31,9 @@ const Validators = {
     userId: Joi.string().required(),
     amount: Joi.number().required(),
     reason: Joi.string(),
+  }),
+  validupdateBattleEarningPercentage: Joi.object({
+    percentage: Joi.number().required(),
   }),
 };
 

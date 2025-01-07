@@ -37,6 +37,11 @@ const settingsSchema = new Schema(
       trim: true,
       required: true,
     },
+    battleEarningPercentage: {
+      type: Number,
+      required: true,
+      default: 20,  // 20%
+    },
   },
   {
     timestamps: true,

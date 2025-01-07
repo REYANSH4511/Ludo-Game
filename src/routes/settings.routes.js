@@ -14,6 +14,7 @@ const {
   uploadKYCDocument,
   addBonus,
   penalty,
+  updateBattleEarningPercentage,
 } = require("../controllers/settingsController");
 const Validator = require("../validators/settings.validators");
 const router = express.Router();
@@ -607,5 +608,13 @@ router
 router
   .route("/add-penalty")
   .post(Validator("validAddBonus"), verifyToken, penalty);
+
+router
+  .route("/add-battle-earning-percentage")
+  .post(
+    Validator("validupdateBattleEarningPercentage"),
+    verifyToken,
+    updateBattleEarningPercentage
+  );
 
 module.exports = router;

@@ -1,3 +1,4 @@
+const Settings = require("../models/settings.model");
 const Transaction = require("../models/transaction.model");
 const User = require("../models/user.model");
 const getMessage = require("../utils/message");
@@ -47,6 +48,8 @@ exports.createTransaction = async (req, res) => {
     } else if (type === "deposit") {
       payload.utrNo = utrNo;
       payload.screenShot = screenShot;
+      const settings = await Settings.findOne({}, { upiId: 1 });
+      payload.adminUPIId = settings?.upiId;
     } else if (type === "referral") {
       if (user?.balance?.referralEarning < amount) {
         return errorHandler({
@@ -87,10 +90,12 @@ exports.getTransactions = async (req, res) => {
     }
     if (type) filter.type = type;
 
-    const transactionList = await Transaction.find(filter).populate("userId", {
-      mobileNo: 1,
-      name: 1,
-    });
+    const transactionList = await Transaction.find(filter)
+      .populate("userId", {
+        mobileNo: 1,
+        name: 1,
+      })
+      .sort({ createdAt: -1 });
 
     const user = await User.findOne({ _id }, { balance: 1 });
 

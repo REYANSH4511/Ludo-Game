@@ -85,6 +85,10 @@ const transactionSchema = new Schema(
       type: String,
       default: null,
     },
+    adminUPIId: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,

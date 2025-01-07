@@ -9,6 +9,7 @@ const {
   isValidAmount,
 } = require("../utils/battleHelper");
 const Transaction = require("../models/transaction.model");
+const Settings = require("../models/settings.model");
 
 // create battle
 exports.createBattle = async (req, res) => {
@@ -74,7 +75,10 @@ exports.createBattle = async (req, res) => {
       });
     }
 
-    const winnerAmount = amount * 2 - amount * 0.2;
+    const settings = await Settings.findOne({}, { battleEarningPercentage: 1 });
+    const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
+    const winnerAmount = amount * 2 - amount * (battleEarningPercentage / 100);
+
     await Battle.create({
       createdBy: _id,
       entryFee: amount,
@@ -253,6 +257,9 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
     battleDetails.acceptedBy = _id;
 
     await battleDetails.save();
+
+    await Battle.deleteOne({ _id: { $ne: battleId }, status: "OPEN", createdBy: _id });
+
     return successHandler({
       res,
       statusCode: 200,
