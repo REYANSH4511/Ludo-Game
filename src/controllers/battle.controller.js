@@ -258,7 +258,11 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
 
     await battleDetails.save();
 
-    await Battle.deleteOne({ _id: { $ne: battleId }, status: "OPEN", createdBy: _id });
+    await Battle.deleteOne({
+      _id: { $ne: battleId },
+      status: "OPEN",
+      acceptedBy: _id,
+    });
 
     return successHandler({
       res,
@@ -365,7 +369,11 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
       { $set: payload },
       { new: true }
     );
-
+    await Battle.deleteOne({
+      _id: { $ne: battleId },
+      status: "OPEN",
+      createdBy: _id,
+    });
     // Return success response
     return successHandler({
       res,
