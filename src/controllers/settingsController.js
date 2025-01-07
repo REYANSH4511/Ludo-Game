@@ -297,16 +297,41 @@ exports.adminDashboard = async (req, res) => {
       isReferral: false,
       ...dateFilter,
     });
-    const totalDeposits = await Transaction.countDocuments({
-      type: "deposit",
-      isReferral: false,
-      ...dateFilter,
-    });
-    const totalWithdrawals = await Transaction.countDocuments({
-      type: "withdraw",
-      isReferral: false,
-      ...dateFilter,
-    });
+    const totalDepositsAmount = await Transaction.aggregate([
+      {
+        $match: {
+          type: "deposit",
+          isReferral: false,
+          ...dateFilter,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalAmount: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    const totalDeposits = totalDepositsAmount[0]?.totalAmount || 0;
+
+    const totalWithdrawalsAmount = await Transaction.aggregate([
+      {
+        $match: {
+          type: "withdraw",
+          isReferral: false,
+          ...dateFilter,
+        },
+      },
+      {
+        $group: {
+          _id: null, // Group all matching documents
+          totalAmount: { $sum: "$amount" }, // Sum up the 'amount' field
+        },
+      },
+    ]);
+
+    const totalWithdrawals = totalWithdrawalsAmount[0]?.totalAmount || 0;
 
     const totalBattle = await Battle.countDocuments({
       ...dateFilter,
@@ -357,10 +382,22 @@ exports.adminDashboard = async (req, res) => {
       ...dateFilter,
     });
 
-    const totalWithdraw = await Transaction.countDocuments({
-      type: "withdraw",
-      ...dateFilter,
-    });
+    const totalWithdrawAmount = await Transaction.aggregate([
+      {
+        $match: {
+          type: "withdraw",
+          ...dateFilter,
+        },
+      },
+      {
+        $group: {
+          _id: null, // Group all matching documents
+          totalAmount: { $sum: "$amount" }, // Sum up the 'amount' field
+        },
+      },
+    ]);
+
+    const totalWithdraw = totalWithdrawAmount[0]?.totalAmount || 0;
 
     const data = {
       totalUsers,
@@ -660,7 +697,7 @@ exports.updateBattleEarningPercentage = async (req, res) => {
     return errorHandler({
       res,
       statusCode: 500,
-      message: error.message,
+      message: err.message,
     });
   }
 };
