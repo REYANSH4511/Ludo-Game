@@ -73,7 +73,7 @@ exports.generateOTP = async (req, res) => {
     return successHandler({
       res,
       data: {
-        isCouponApplied: user.referedBy && !user.isVerified ? true : false,
+        isCouponApplied: user.isVerified ? true : user.referedBy ? true : false,
       },
       statusCode: 200,
       message: getMessage("M001"),
