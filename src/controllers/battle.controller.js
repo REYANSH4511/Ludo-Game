@@ -270,7 +270,7 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
     await Battle.deleteOne({
       _id: { $ne: battleId },
       status: "OPEN",
-      acceptedBy: _id,
+      createdBy: _id,
     });
 
     return successHandler({
