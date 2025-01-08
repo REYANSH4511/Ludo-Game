@@ -694,3 +694,64 @@ exports.updateBattleEarningPercentage = async (req, res) => {
     });
   }
 };
+
+exports.getUserDetails = async (req, res) => {
+  try {
+    const { role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
+    const { userId } = req.params;
+
+    const [user, depositHistory, withdrawHistory, referralHistory, battles] =
+      await Promise.all([
+        User.findOne({ _id: userId }).lean(),
+        Transaction.find({ userId, type: "deposit" }).lean(),
+        Transaction.find({
+          userId,
+          type: "withdraw",
+          isBattleTransaction: false,
+        }).lean(),
+        Transaction.find({ userId, type: "referral", isReferral: true }).lean(),
+        Battle.find({
+          $or: [{ createdBy: userId }, { acceptedBy: userId }],
+        })
+          .populate("createdBy", "name")
+          .populate("acceptedBy", "name")
+          .populate("winner", "name")
+          .populate("loser", "name")
+          .lean(),
+      ]);
+
+    battles.forEach((battle) => {
+      if (battle.winner?._id.toString() === userId) {
+        battle.winStatus = "WIN";
+      } else {
+        battle.winStatus = "LOSE";
+      }
+    });
+
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: getMessage("M068"),
+      data: {
+        user,
+        depositHistory,
+        withdrawHistory,
+        referralHistory,
+        battles,
+      },
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};

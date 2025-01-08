@@ -15,6 +15,7 @@ const {
   addBonus,
   penalty,
   updateBattleEarningPercentage,
+  getUserDetails,
 } = require("../controllers/settingsController");
 const Validator = require("../validators/settings.validators");
 const router = express.Router();
@@ -616,5 +617,7 @@ router
     verifyToken,
     updateBattleEarningPercentage
   );
+
+router.route("/user-detals/:userId").get(verifyToken, getUserDetails);
 
 module.exports = router;

@@ -66,4 +66,5 @@ exports.messageList = {
   M065: "User blocked! Contact admin for more details!",
   M066: "Bonus applied successfully!",
   M067: "Battle Earning Percentage updated successfully!",
+  M068: "User details fetched successfully!",
 };
