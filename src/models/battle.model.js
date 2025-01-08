@@ -91,7 +91,14 @@ const battleSchema = new Schema(
       ref: "User",
       default: null,
     },
-
+    closingBalanceCreater: {
+      type: Number,
+      default: 0,
+    },
+    closingBalanceAccepter: {
+      type: Number,
+      default: 0,
+    },
     resultUpatedBy: resultSchema,
   },
   {

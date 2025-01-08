@@ -92,6 +92,8 @@ exports.createBattle = async (req, res) => {
       amount: commisionAmount,
       commissionPercentage: battleEarningPercentage,
       battleId: battleDetails._id,
+      closingBalanceCreater:
+        userDetails.balance.totalBalance + userDetails.balance.cashWon,
     });
 
     return successHandler({
@@ -264,7 +266,8 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
       });
     }
     battleDetails.acceptedBy = _id;
-
+    battleDetails.closingBalanceAccepter =
+      userDetails.balance.totalBalance + userDetails.balance.cashWon;
     await battleDetails.save();
 
     await Battle.deleteOne({
@@ -349,6 +352,7 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
       if (battleDetails.createdBy.toString() === _id.toString()) {
         payload.acceptedBy = null;
         payload.acceptedDate = null;
+        payload.closingBalanceAccepter = null;
         payload.isBattleRequestAccepted = false;
       } else if (battleDetails.acceptedBy?.toString() === _id.toString()) {
         payload.resultUpatedBy = payload.resultUpatedBy || {};
@@ -974,6 +978,7 @@ exports.updateBattleResultByAdmin = async (req, res) => {
         matchStatus: isCancelled ? "CANCELLED" : "COMPLETED",
         winner,
         loser: looser,
+        status: "CLOSED",
         paymentStatus: "COMPLETED",
       });
     }

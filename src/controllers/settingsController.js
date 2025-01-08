@@ -498,15 +498,17 @@ exports.penalty = async (req, res) => {
     } else {
       user.balance.totalBalance -= amount;
     }
-    user.balance.penalty += amount;
-    user.save();
 
     await Transaction.create({
       type: "penalty",
       userId,
       amount: amount,
       status: "approved",
+      closingBalance: user.balance.totalBalance + user.balance.cashWon,
     });
+
+    user.balance.penalty += amount;
+    user.save();
 
     if (reason) {
       await Notification.create({
@@ -578,17 +580,17 @@ exports.addBonus = async (req, res) => {
         message: getMessage("M002"),
       });
     }
-
-    user.balance.totalBalance += amount;
-    user.balance.bonus += amount;
-    user.save();
-
     await Transaction.create({
       type: "bonus",
       userId,
       amount,
       status: "approved",
+      closingBalance: user.balance.totalBalance + user.balance.cashWon,
     });
+
+    user.balance.totalBalance += amount;
+    user.balance.bonus += amount;
+    user.save();
 
     await Notification.create({
       userId,
@@ -719,18 +721,25 @@ exports.getUserDetails = async (req, res) => {
       battles,
     ] = await Promise.all([
       User.findById(userId).populate("referedBy", "name").lean(),
-      Transaction.find({ userId, type: "deposit" }).lean(),
+      Transaction.find({ userId, type: "deposit" })
+        .sort({ createdAt: -1 })
+        .lean(),
       Transaction.find({
         userId,
         type: "withdraw",
         isBattleTransaction: false,
-      }).lean(),
-      Transaction.find({ userId, type: "referral", isReferral: true }).lean(),
+      })
+        .sort({ createdAt: -1 })
+        .lean(),
+      Transaction.find({ userId, type: "referral", isReferral: true })
+        .sort({ createdAt: -1 })
+        .lean(),
       Transaction.find({
         userId,
         type: "withdraw",
         isBattleTransaction: true,
       })
+        .sort({ createdAt: -1 })
         .populate("battleId", "winner")
         .lean(),
       Battle.find({
@@ -744,7 +753,7 @@ exports.getUserDetails = async (req, res) => {
     ]);
 
     // Calculate loss amount
-    const lossAmount = battleTransactions.reduce((total, transaction) => {
+    const loseAmount = battleTransactions.reduce((total, transaction) => {
       return transaction?.battleId?.winner?.toString() !== userId
         ? total + transaction.amount
         : total;
@@ -757,12 +766,28 @@ exports.getUserDetails = async (req, res) => {
           ? "WIN"
           : "LOSE"
         : "CANCELLED";
+      isBattleCreatedByUser = battle?.createdBy?._id.toString() === userId;
     });
 
     // Attach loss amount to user balance
     const userDetails = {
       ...user,
-      balance: { ...user.balance, lossAmount },
+      balance: { ...user.balance, loseAmount },
+      holdBalance: withdrawHistory.reduce(
+        (total, transaction) =>
+          total + transaction.status === "pending" && transaction.amount
+      ),
+      totalReferralCount: user?.referredUsers?.length,
+      missmatchWalletBallance: 0,
+      totalWithdrawAmount: withdrawHistory.reduce(
+        (total, transaction) =>
+          total + transaction.status === "approved" && transaction.amount,
+        0
+      ),
+      totalDepositAmount: depositHistory.reduce(
+        (total, transaction) => total + transaction.amount,
+        0
+      ),
     };
 
     // Return success response

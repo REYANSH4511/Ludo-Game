@@ -17,6 +17,8 @@ const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
       status: "approved",
       isBattleTransaction: true,
       battleId: battleId,
+      closingBalance:
+        userDetails.balance.totalBalance + userDetails.balance.cashWon,
     });
     userDetails.balance.totalBalance -= entryFee;
     userDetails.balance.battlePlayed += 1;
@@ -44,7 +46,7 @@ const updateWinningAmountForWinner = async (data) => {
         battleId: data?._id,
         userId: data.createdBy,
       });
-      
+
       if (createdUserTransaction.deletedCount > 0) {
         createdUser.balance.totalBalance += data.entryFee;
       }
@@ -53,7 +55,7 @@ const updateWinningAmountForWinner = async (data) => {
         battleId: data?._id,
         userId: data.acceptedBy,
       });
-      
+
       if (acceptedUserTransaction.deletedCount > 0) {
         acceptedUser.balance.totalBalance += data.entryFee;
       }
@@ -61,10 +63,8 @@ const updateWinningAmountForWinner = async (data) => {
       await createdUser.save();
       await acceptedUser.save();
     } else {
-  
       if (!data.winner) return;
       const userDetails = await User.findOne({ _id: data.winner });
-      userDetails.balance.cashWon += data.winnerAmount;
 
       await Transaction.create({
         userId: data.winner,
@@ -74,7 +74,11 @@ const updateWinningAmountForWinner = async (data) => {
         isBattleTransaction: true,
         battleId: data.battleId,
         isWonCash: true,
+        closingBalance:
+          userDetails.balance.totalBalance + userDetails.balance.cashWon,
       });
+
+      userDetails.balance.cashWon += data.winnerAmount;
 
       await userDetails.save();
       const referredUserDetails = await User.findOne({ _id: data.referredBy });

@@ -62,9 +62,13 @@ exports.createTransaction = async (req, res) => {
       payload.isReferral = true;
       user.balance.referralEarning -= amount;
     }
-    await user.save();
+
+    payload.closingBalance = user.balance.totalBalance + user.balance.cashWon;
 
     await Transaction.create(payload);
+
+    await user.save();
+
     return successHandler({
       res,
       statusCode: 201,
