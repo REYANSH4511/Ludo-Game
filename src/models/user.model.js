@@ -45,6 +45,10 @@ const balanceSchema = new Schema({
     type: Number,
     default: 0,
   },
+  bonus: {
+    type: Number,
+    default: 0,
+  },
 });
 
 const referredUserSchema = new Schema({

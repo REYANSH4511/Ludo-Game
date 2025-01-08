@@ -580,6 +580,7 @@ exports.addBonus = async (req, res) => {
     }
 
     user.balance.totalBalance += amount;
+    user.balance.bonus += amount;
     user.save();
 
     await Transaction.create({
