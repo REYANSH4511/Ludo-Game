@@ -618,6 +618,6 @@ router
     updateBattleEarningPercentage
   );
 
-router.route("/user-detals/:userId").get(verifyToken, getUserDetails);
+router.route("/user-details/:userId").get(verifyToken, getUserDetails);
 
 module.exports = router;
