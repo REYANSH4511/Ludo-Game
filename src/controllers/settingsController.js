@@ -706,42 +706,72 @@ exports.getUserDetails = async (req, res) => {
         message: getMessage("M015"),
       });
     }
+
     const { userId } = req.params;
 
-    const [user, depositHistory, withdrawHistory, referralHistory, battles] =
-      await Promise.all([
-        User.findOne({ _id: userId }).lean(),
-        Transaction.find({ userId, type: "deposit" }).lean(),
-        Transaction.find({
-          userId,
-          type: "withdraw",
-          isBattleTransaction: false,
-        }).lean(),
-        Transaction.find({ userId, type: "referral", isReferral: true }).lean(),
-        Battle.find({
-          $or: [{ createdBy: userId }, { acceptedBy: userId }],
-        })
-          .populate("createdBy", "name")
-          .populate("acceptedBy", "name")
-          .populate("winner", "name")
-          .populate("loser", "name")
-          .lean(),
-      ]);
+    // Fetch all required data in parallel
+    const [
+      user,
+      depositHistory,
+      withdrawHistory,
+      referralHistory,
+      battleTransactions,
+      battles,
+    ] = await Promise.all([
+      User.findById(userId).populate("referedBy", "name").lean(),
+      Transaction.find({ userId, type: "deposit" }).lean(),
+      Transaction.find({
+        userId,
+        type: "withdraw",
+        isBattleTransaction: false,
+      }).lean(),
+      Transaction.find({ userId, type: "referral", isReferral: true }).lean(),
+      Transaction.find({
+        userId,
+        type: "withdraw",
+        isBattleTransaction: true,
+      })
+        .populate("battleId", "winner")
+        .lean(),
+      Battle.find({
+        $or: [{ createdBy: userId }, { acceptedBy: userId }],
+      })
+        .populate("createdBy", "name")
+        .populate("acceptedBy", "name")
+        .populate("winner", "name")
+        .populate("loser", "name")
+        .lean(),
+    ]);
 
+    // Calculate loss amount
+    const lossAmount = battleTransactions.reduce((total, transaction) => {
+      return transaction?.battleId?.winner?.toString() !== userId
+        ? total + transaction.amount
+        : total;
+    }, 0);
+
+    // Update battle win status
     battles.forEach((battle) => {
-      if (battle.winner?._id.toString() === userId) {
-        battle.winStatus = "WIN";
-      } else {
-        battle.winStatus = "LOSE";
-      }
+      battle.winStatus = battle?.winner?._id
+        ? battle.winner?._id.toString() === userId
+          ? "WIN"
+          : "LOSE"
+        : "CANCELLED";
     });
 
+    // Attach loss amount to user balance
+    const userDetails = {
+      ...user,
+      balance: { ...user.balance, lossAmount },
+    };
+
+    // Return success response
     return successHandler({
       res,
       statusCode: 200,
       message: getMessage("M068"),
       data: {
-        user,
+        user: userDetails,
         depositHistory,
         withdrawHistory,
         referralHistory,
@@ -749,6 +779,7 @@ exports.getUserDetails = async (req, res) => {
       },
     });
   } catch (err) {
+    // Handle errors
     return errorHandler({
       res,
       statusCode: 500,

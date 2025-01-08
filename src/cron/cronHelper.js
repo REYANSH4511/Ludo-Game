@@ -19,6 +19,7 @@ exports.updateBattleResult = async () => {
               battle.winner = battle?.acceptedBy;
               battle.loser = battle?.createdBy;
               battle.matchStatus = "COMPLETED";
+              battle.status = "CLOSED";
             } else if (
               battle?.resultUpatedBy?.acceptedUser?.matchStatus === "LOSS" &&
               battle?.resultUpatedBy?.createdUser?.matchStatus === "WON"
@@ -26,6 +27,7 @@ exports.updateBattleResult = async () => {
               battle.loser = battle?.acceptedBy;
               battle.winner = battle?.createdBy;
               battle.matchStatus = "COMPLETED";
+              battle.status = "CLOSED";
             } else if (
               battle?.resultUpatedBy?.acceptedUser?.matchStatus ===
                 "CANCELLED" &&
@@ -34,9 +36,9 @@ exports.updateBattleResult = async () => {
               battle.winner = null;
               battle.loser = null;
               battle.matchStatus = "CANCELLED";
+              battle.status = "CONFLICT";
             }
             battle.paymentStatus = "COMPLETED";
-            battle.status = "CLOSED";
             await updateWinningAmountForWinner(battle);
             await battle.save();
           }

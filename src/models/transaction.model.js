@@ -64,7 +64,7 @@ const transactionSchema = new Schema(
     },
     battleId: {
       type: Schema.Types.ObjectId,
-      ref: "Battle",
+      ref: "battle",
       default: null,
     },
     bankAccountDetails: bankAccountDetailsSchema,
