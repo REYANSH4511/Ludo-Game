@@ -61,6 +61,21 @@ const referredUserSchema = new Schema({
     type: Number,
     default: 0,
   },
+  createdAt: {
+    type: Date,
+    default: new Date(),
+  },
+  updatedAt: {
+    type: Date,
+    default: new Date(),
+  },
+});
+
+referredUserSchema.pre("save", function (next) {
+  if (this.isModified("referralEarning")) {
+    this.updatedAt = new Date();
+  }
+  next();
 });
 
 const userSchema = new Schema(
