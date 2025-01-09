@@ -781,19 +781,23 @@ exports.getUserDetails = async (req, res) => {
       balance: { ...user.balance, loseAmount },
       holdBalance:
         withdrawHistory.length > 0
-          ? withdrawHistory?.reduce(
+          ? withdrawHistory.reduce(
               (total, transaction) =>
-                total + transaction.status === "pending" && transaction?.amount
+                transaction.status === "pending"
+                  ? total + transaction.amount
+                  : total,
+              0
             )
           : 0,
       totalReferralCount: user?.referredUsers?.length,
       missmatchWalletBallance: 0,
       totalWithdrawAmount:
         withdrawHistory.length > 0
-          ? withdrawHistory?.reduce(
+          ? withdrawHistory.reduce(
               (total, transaction) =>
-                total + transaction.status === "approved" &&
-                transaction?.amount,
+                transaction.status === "approved"
+                  ? total + transaction.amount
+                  : total,
               0
             )
           : 0,
