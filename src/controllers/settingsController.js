@@ -754,12 +754,13 @@ exports.getUserDetails = async (req, res) => {
 
     // Calculate loss amount
     const loseAmount =
-      battleTransactions.length > 0 &&
-      battleTransactions?.reduce((total, transaction) => {
-        return transaction?.battleId?.winner?.toString() !== userId
-          ? total + transaction.amount
-          : total;
-      }, 0);
+      battleTransactions.length > 0
+        ? battleTransactions?.reduce((total, transaction) => {
+            return transaction?.battleId?.winner?.toString() !== userId
+              ? total + transaction.amount
+              : total;
+          }, 0)
+        : 0;
 
     // Update battle win status
     battles?.forEach((battle) => {
@@ -776,26 +777,30 @@ exports.getUserDetails = async (req, res) => {
       ...user,
       balance: { ...user.balance, loseAmount },
       holdBalance:
-        withdrawHistory.length > 0 &&
-        withdrawHistory?.reduce(
-          (total, transaction) =>
-            total + transaction.status === "pending" && transaction?.amount
-        ),
+        withdrawHistory.length > 0
+          ? withdrawHistory?.reduce(
+              (total, transaction) =>
+                total + transaction.status === "pending" && transaction?.amount
+            )
+          : 0,
       totalReferralCount: user?.referredUsers?.length,
       missmatchWalletBallance: 0,
       totalWithdrawAmount:
-        withdrawHistory.length > 0 &&
-        withdrawHistory?.reduce(
-          (total, transaction) =>
-            total + transaction.status === "approved" && transaction?.amount,
-          0
-        ),
+        withdrawHistory.length > 0
+          ? withdrawHistory?.reduce(
+              (total, transaction) =>
+                total + transaction.status === "approved" &&
+                transaction?.amount,
+              0
+            )
+          : 0,
       totalDepositAmount:
-        depositHistory.length > 0 &&
-        depositHistory?.reduce(
-          (total, transaction) => total + transaction?.amount,
-          0
-        ),
+        depositHistory.length > 0
+          ? depositHistory?.reduce(
+              (total, transaction) => total + transaction?.amount,
+              0
+            )
+          : 0,
     };
 
     // Return success response
