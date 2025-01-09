@@ -753,14 +753,14 @@ exports.getUserDetails = async (req, res) => {
     ]);
 
     // Calculate loss amount
-    const loseAmount = battleTransactions.reduce((total, transaction) => {
+    const loseAmount = battleTransactions?.reduce((total, transaction) => {
       return transaction?.battleId?.winner?.toString() !== userId
         ? total + transaction.amount
         : total;
     }, 0);
 
     // Update battle win status
-    battles.forEach((battle) => {
+    battles?.forEach((battle) => {
       battle.winStatus = battle?.winner?._id
         ? battle.winner?._id.toString() === userId
           ? "WIN"
@@ -773,19 +773,19 @@ exports.getUserDetails = async (req, res) => {
     const userDetails = {
       ...user,
       balance: { ...user.balance, loseAmount },
-      holdBalance: withdrawHistory.reduce(
+      holdBalance: withdrawHistory?.reduce(
         (total, transaction) =>
-          total + transaction.status === "pending" && transaction.amount
+          total + transaction.status === "pending" && transaction?.amount
       ),
       totalReferralCount: user?.referredUsers?.length,
       missmatchWalletBallance: 0,
-      totalWithdrawAmount: withdrawHistory.reduce(
+      totalWithdrawAmount: withdrawHistory?.reduce(
         (total, transaction) =>
-          total + transaction.status === "approved" && transaction.amount,
+          total + transaction.status === "approved" && transaction?.amount,
         0
       ),
-      totalDepositAmount: depositHistory.reduce(
-        (total, transaction) => total + transaction.amount,
+      totalDepositAmount: depositHistory?.reduce(
+        (total, transaction) => total + transaction?.amount,
         0
       ),
     };
