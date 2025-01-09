@@ -753,11 +753,13 @@ exports.getUserDetails = async (req, res) => {
     ]);
 
     // Calculate loss amount
-    const loseAmount = battleTransactions?.reduce((total, transaction) => {
-      return transaction?.battleId?.winner?.toString() !== userId
-        ? total + transaction.amount
-        : total;
-    }, 0);
+    const loseAmount =
+      battleTransactions.length > 0 &&
+      battleTransactions?.reduce((total, transaction) => {
+        return transaction?.battleId?.winner?.toString() !== userId
+          ? total + transaction.amount
+          : total;
+      }, 0);
 
     // Update battle win status
     battles?.forEach((battle) => {
@@ -773,21 +775,27 @@ exports.getUserDetails = async (req, res) => {
     const userDetails = {
       ...user,
       balance: { ...user.balance, loseAmount },
-      holdBalance: withdrawHistory?.reduce(
-        (total, transaction) =>
-          total + transaction.status === "pending" && transaction?.amount
-      ),
+      holdBalance:
+        withdrawHistory.length > 0 &&
+        withdrawHistory?.reduce(
+          (total, transaction) =>
+            total + transaction.status === "pending" && transaction?.amount
+        ),
       totalReferralCount: user?.referredUsers?.length,
       missmatchWalletBallance: 0,
-      totalWithdrawAmount: withdrawHistory?.reduce(
-        (total, transaction) =>
-          total + transaction.status === "approved" && transaction?.amount,
-        0
-      ),
-      totalDepositAmount: depositHistory?.reduce(
-        (total, transaction) => total + transaction?.amount,
-        0
-      ),
+      totalWithdrawAmount:
+        withdrawHistory.length > 0 &&
+        withdrawHistory?.reduce(
+          (total, transaction) =>
+            total + transaction.status === "approved" && transaction?.amount,
+          0
+        ),
+      totalDepositAmount:
+        depositHistory.length > 0 &&
+        depositHistory?.reduce(
+          (total, transaction) => total + transaction?.amount,
+          0
+        ),
     };
 
     // Return success response
