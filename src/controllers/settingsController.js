@@ -720,7 +720,10 @@ exports.getUserDetails = async (req, res) => {
       battleTransactions,
       battles,
     ] = await Promise.all([
-      User.findById(userId).populate("referedBy", "name").lean(),
+      User.findById(userId)
+        .populate("referedBy", "name")
+        .populate("referredUsers.userId", "name")
+        .lean(),
       Transaction.find({ userId, type: "deposit" })
         .sort({ createdAt: -1 })
         .lean(),
