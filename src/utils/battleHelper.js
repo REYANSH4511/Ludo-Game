@@ -88,7 +88,7 @@ const updateWinningAmountForWinner = async (data) => {
       if (referredUserDetails) {
         const settings = await Settings.findOne(
           {},
-          { referralAmountPercentage: 1, _id: 0, __v: 0 }
+          { referralAmountPercentage: 1 }
         );
         const referralEarningPercentage =
           settings?.referralAmountPercentage || 0;
