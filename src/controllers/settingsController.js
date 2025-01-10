@@ -259,8 +259,8 @@ exports.adminDashboard = async (req, res) => {
       fromDate && toDate
         ? {
             createdAt: {
-              $gte: new Date(fromDate).setHours(0, 0, 0, 0),
-              $lte: new Date(toDate).setHours(23, 59, 59, 999),
+              $gte: new Date(new Date(fromDate).setHours(0, 0, 0, 0)),
+              $lte: new Date(new Date(toDate).setHours(23, 59, 59, 999)),
             },
           }
         : {};
@@ -310,12 +310,20 @@ exports.adminDashboard = async (req, res) => {
       getCount(Transaction, { isReferral: false, ...dateFilter }),
       getAggregateTotal(
         Transaction,
-        { type: "deposit", isReferral: false, ...dateFilter },
+        {
+          $or: [{ type: "deposit" }, { type: "bonus" }],
+          isReferral: false,
+          ...dateFilter,
+        },
         "amount"
       ),
       getAggregateTotal(
         Transaction,
-        { type: "withdraw", isReferral: false, ...dateFilter },
+        {
+          $or: [{ type: "withdraw" }, { type: "penalty" }],
+          isReferral: false,
+          ...dateFilter,
+        },
         "amount"
       ),
       getCount(Battle, { ...dateFilter }),
@@ -356,7 +364,7 @@ exports.adminDashboard = async (req, res) => {
         { type: "withdraw", ...dateFilter },
         "amount"
       ),
-      getAggregateTotal(BattleCommission, {}, "amount"),
+      getAggregateTotal(BattleCommission, { ...dateFilter }, "amount"),
       getAggregateTotal(
         Transaction,
         { type: "deposit", isReferral: true, ...dateFilter },
@@ -731,12 +739,15 @@ exports.getUserDetails = async (req, res) => {
         .populate("referedBy", "name")
         .populate("referredUsers.userId", "name")
         .lean(),
-      Transaction.find({ userId, type: { $or: ["deposit", "bonus"] } })
+      Transaction.find({
+        userId,
+        $or: [{ type: "deposit" }, { type: "bonus" }],
+      })
         .sort({ createdAt: -1 })
         .lean(),
       Transaction.find({
         userId,
-        type: { $or: ["withdraw", "penalty"] },
+        $or: [{ type: "withdraw" }, { type: "penalty" }],
         isBattleTransaction: false,
       })
         .sort({ createdAt: -1 })

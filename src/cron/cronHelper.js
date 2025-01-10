@@ -112,3 +112,20 @@ exports.updateBttleResultNotUpdatedByUser = async () => {
     console.error("Error updating battles:", err);
   }
 };
+exports.updateBattleIFNoAcceptor = async () => {
+  try {
+    const fiveMinutesAgo = dayjs().subtract(5, "minute").toDate();
+    const deletedBattles = await Battle.deleteMany({
+      status: { $in: ["OPEN", "PLAYING"] },
+      createdAt: { $lte: fiveMinutesAgo },
+      acceptedBy: null,
+    }).exec();
+
+    if (deletedBattles.deletedCount > 0) {
+      console.log("deleted", deletedBattles.deletedCount);
+    }
+    
+  } catch (err) {
+    console.log("error", err);
+  }
+};
