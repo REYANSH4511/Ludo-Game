@@ -267,7 +267,7 @@ exports.adminDashboard = async (req, res) => {
               $gte: dayjs(`${fromDate}T00:00:00`).utcOffset(-5.5).toDate(),
               $lte: dayjs(`${toDate}T23:59:59`).utcOffset(-5.5).toDate(),
             },
-          } 
+          }
         : {};
 
     const getCount = async (model, filter) =>
@@ -367,7 +367,7 @@ exports.adminDashboard = async (req, res) => {
       }),
       getAggregateTotal(
         Transaction,
-        { type: "withdraw", ...dateFilter },
+        { type: "withdraw", isBattleTransaction: false, ...dateFilter },
         "amount"
       ),
       getAggregateTotal(BattleCommission, { ...dateFilter }, "amount"),
@@ -388,6 +388,7 @@ exports.adminDashboard = async (req, res) => {
       ),
       getCount(Transaction, {
         type: "withdraw",
+        isBattleTransaction: false,
         ...dateFilter,
       }),
     ]);
