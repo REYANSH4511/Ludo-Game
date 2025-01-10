@@ -300,6 +300,7 @@ exports.adminDashboard = async (req, res) => {
       totalReferral,
       totalBonus,
       totalPenalty,
+      totalWithdrawRequest,
     ] = await Promise.all([
       getCount(User, { role: "user", ...dateFilter }),
       getCount(User, { role: "user", isActive: true, ...dateFilter }),
@@ -380,6 +381,10 @@ exports.adminDashboard = async (req, res) => {
         { type: "penalty", ...dateFilter },
         "amount"
       ),
+      getCount(Transaction, {
+        type: "withdraw",
+        ...dateFilter,
+      }),
     ]);
 
     const userBalances = await User.find(
@@ -431,6 +436,7 @@ exports.adminDashboard = async (req, res) => {
       pendingReferralAmount,
       holdBalance,
       totalPenalty,
+      totalWithdrawRequest,
     };
 
     return successHandler({
