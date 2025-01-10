@@ -388,7 +388,7 @@ exports.adminDashboard = async (req, res) => {
     ]);
 
     const userBalances = await User.find(
-      { role: "user", isActive: true },
+      { role: "user", isActive: true, ...dateFilter },
       { balance: 1 }
     );
     const totalWalletBalance = userBalances.reduce(
