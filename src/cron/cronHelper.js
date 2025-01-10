@@ -36,7 +36,7 @@ exports.updateBattleResult = async () => {
               battle.winner = null;
               battle.loser = null;
               battle.matchStatus = "CANCELLED";
-              battle.status = "CONFLICT";
+              battle.status = "CANCELLED";
             }
             battle.paymentStatus = "COMPLETED";
             await updateWinningAmountForWinner(battle);
@@ -124,7 +124,7 @@ exports.updateBattleIFNoAcceptor = async () => {
     if (deletedBattles.deletedCount > 0) {
       console.log("deleted", deletedBattles.deletedCount);
     }
-    
+
   } catch (err) {
     console.log("error", err);
   }
