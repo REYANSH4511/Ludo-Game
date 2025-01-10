@@ -255,12 +255,17 @@ exports.adminDashboard = async (req, res) => {
     }
 
     const { fromDate, toDate } = req.query;
+
+    const dayjs = require("dayjs");
+    const utc = require("dayjs/plugin/utc");
+    dayjs.extend(utc);
+
     const dateFilter =
       fromDate && toDate
         ? {
             createdAt: {
-              $gte: new Date(`${fromDate}T00:00:00.000Z`),
-              $lte: new Date(`${toDate}T23:59:59.999Z`),
+              $gte: dayjs(`${fromDate}T00:00:00`).utcOffset(-5.5).toDate(),
+              $lte: dayjs(`${toDate}T23:59:59`).utcOffset(-5.5).toDate(),
             },
           }
         : {};
