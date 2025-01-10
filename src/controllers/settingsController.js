@@ -259,8 +259,8 @@ exports.adminDashboard = async (req, res) => {
       fromDate && toDate
         ? {
             createdAt: {
-              $gte: new Date(new Date(fromDate).setHours(0, 0, 0, 0)),
-              $lte: new Date(new Date(toDate).setHours(23, 59, 59, 999)),
+              $gte: new Date(`${fromDate}T00:00:00.000Z`),
+              $lte: new Date(`${toDate}T23:59:59.999Z`),
             },
           }
         : {};
