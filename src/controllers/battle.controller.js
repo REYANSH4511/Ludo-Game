@@ -839,7 +839,7 @@ exports.updateBattleResultByUser = async (req, res) => {
     }
 
     // Update match result for the user
-    let updatedMatchResult = { matchStatus, screenShot };
+    let updatedMatchResult = { matchStatus, screenShot, updatedAt: new Date() };
     if (cancellationReason) {
       updatedMatchResult.cancellationReason = cancellationReason;
     }
