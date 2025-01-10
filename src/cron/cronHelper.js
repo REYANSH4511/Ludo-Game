@@ -36,7 +36,7 @@ exports.updateBattleResult = async () => {
               battle.winner = null;
               battle.loser = null;
               battle.matchStatus = "CANCELLED";
-              battle.status = "CANCELLED";
+              battle.status = "CLOSED";
             }
             battle.paymentStatus = "COMPLETED";
             await updateWinningAmountForWinner(battle);
