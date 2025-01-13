@@ -11,6 +11,7 @@ const {
 } = require("../utils/battleHelper");
 const Transaction = require("../models/transaction.model");
 const BattleCommission = require("../models/battleCommission.model");
+const Settings = require("../models/settings.model");
 
 // create battle
 exports.createBattle = async (req, res) => {
@@ -76,6 +77,9 @@ exports.createBattle = async (req, res) => {
       });
     }
 
+    const settings = await Settings.findOne({}, { battleEarningPercentage: 1 });
+    const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
+    const commisionAmount = amount * (battleEarningPercentage / 100);
     const winnerAmount = amount * 2 - commisionAmount;
 
     await Battle.create({
