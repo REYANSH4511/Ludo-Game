@@ -2,6 +2,7 @@ const User = require("../models/user.model");
 const Transaction = require("../models/transaction.model");
 const Settings = require("../models/settings.model");
 const { errorHandler } = require("./responseHandler");
+const BattleCommission = require("../models/battleCommission.model");
 
 //function to update withdraw transaction and total balance in schemas
 const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
@@ -84,12 +85,20 @@ const updateWinningAmountForWinner = async (data) => {
       const referredUserDetails = await User.findOne({
         _id: userDetails?.referedBy,
       });
+      const settings = await Settings.findOne(
+        {},
+        { battleEarningPercentage: 1, referralAmountPercentage: 1 }
+      );
+      const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
+      const commisionAmount = data?.entryFee * (battleEarningPercentage / 100);
+      
+      await BattleCommission.create({
+        amount: commisionAmount,
+        commissionPercentage: battleEarningPercentage,
+        battleId: data._id,
+      });
 
       if (referredUserDetails) {
-        const settings = await Settings.findOne(
-          {},
-          { referralAmountPercentage: 1 }
-        );
         const referralEarningPercentage =
           settings?.referralAmountPercentage || 0;
         const referralAmount = Math.round(
@@ -118,8 +127,51 @@ const updateWinningAmountForWinner = async (data) => {
   }
 };
 
+const updateWinningAmountByUsers = async (battle) => {
+  try {
+    if (!battle.winner || !battle.loser) {
+      if (
+        battle?.resultUpatedBy?.acceptedUser?.matchStatus &&
+        battle?.resultUpatedBy?.createdUser?.matchStatus
+      ) {
+        if (
+          battle?.resultUpatedBy?.acceptedUser?.matchStatus === "WON" &&
+          battle?.resultUpatedBy?.createdUser?.matchStatus === "LOSS"
+        ) {
+          battle.winner = battle?.acceptedBy;
+          battle.loser = battle?.createdBy;
+          battle.matchStatus = "COMPLETED";
+          battle.status = "CLOSED";
+        } else if (
+          battle?.resultUpatedBy?.acceptedUser?.matchStatus === "LOSS" &&
+          battle?.resultUpatedBy?.createdUser?.matchStatus === "WON"
+        ) {
+          battle.loser = battle?.acceptedBy;
+          battle.winner = battle?.createdBy;
+          battle.matchStatus = "COMPLETED";
+          battle.status = "CLOSED";
+        } else if (
+          battle?.resultUpatedBy?.acceptedUser?.matchStatus === "CANCELLED" &&
+          battle?.resultUpatedBy?.createdUser?.matchStatus === "CANCELLED"
+        ) {
+          battle.winner = null;
+          battle.loser = null;
+          battle.matchStatus = "CANCELLED";
+          battle.status = "CLOSED";
+        }
+        battle.paymentStatus = "COMPLETED";
+        await updateWinningAmountForWinner(battle);
+      }
+    }
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+};
+
 module.exports = {
   updateTransactionForStartingGame,
   updateWinningAmountForWinner,
   isValidAmount,
+  updateWinningAmountByUsers,
 };

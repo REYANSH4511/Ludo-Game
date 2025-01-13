@@ -67,4 +67,5 @@ exports.messageList = {
   M066: "Bonus applied successfully!",
   M067: "Battle Earning Percentage updated successfully!",
   M068: "User details fetched successfully!",
+  M069: "KYC rejected successfully!",
 };

@@ -7,9 +7,9 @@ const {
   updateTransactionForStartingGame,
   updateWinningAmountForWinner,
   isValidAmount,
+  updateWinningAmountByUsers,
 } = require("../utils/battleHelper");
 const Transaction = require("../models/transaction.model");
-const Settings = require("../models/settings.model");
 const BattleCommission = require("../models/battleCommission.model");
 
 // create battle
@@ -76,22 +76,12 @@ exports.createBattle = async (req, res) => {
       });
     }
 
-    const settings = await Settings.findOne({}, { battleEarningPercentage: 1 });
-    const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
-    const commisionAmount = amount * (battleEarningPercentage / 100);
-
     const winnerAmount = amount * 2 - commisionAmount;
 
-    const battleDetails = await Battle.create({
+    await Battle.create({
       createdBy: _id,
       entryFee: amount,
       winnerAmount,
-    });
-
-    await BattleCommission.create({
-      amount: commisionAmount,
-      commissionPercentage: battleEarningPercentage,
-      battleId: battleDetails._id,
       closingBalanceCreater:
         userDetails.balance.totalBalance + userDetails.balance.cashWon,
     });
@@ -339,6 +329,12 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
           battleDetails.entryFee,
           battleDetails._id
         );
+
+        await Battle.deleteOne({
+          _id: { $ne: battleId },
+          status: "OPEN",
+          createdBy: _id,
+        });
       } else {
         return errorHandler({
           res,
@@ -382,11 +378,7 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
       { $set: payload },
       { new: true }
     );
-    await Battle.deleteOne({
-      _id: { $ne: battleId },
-      status: "OPEN",
-      createdBy: _id,
-    });
+
     // Return success response
     return successHandler({
       res,
@@ -845,7 +837,12 @@ exports.updateBattleResultByUser = async (req, res) => {
     }
 
     battleDetails.resultUpatedBy[userKey] = updatedMatchResult;
-
+    if (
+      battleDetails.resultUpatedBy?.acceptedUser?.matchStatus &&
+      battleDetails.resultUpatedBy?.createdUser?.matchStatus
+    ) {
+      updateWinningAmountByUsers(battleDetails);
+    }
     await battleDetails.save();
 
     return successHandler({
@@ -927,19 +924,37 @@ exports.updateBattleResultByAdmin = async (req, res) => {
       }
 
       if (isCancelled) {
-        if (
-          battleDetails?.resultUpatedBy?.createdUser?.matchStatus !==
-          "CANCELLED"
-        ) {
-          battleDetails.resultUpatedBy.createdUser.matchStatus = "CANCELLED";
-          battleDetails.resultUpatedBy.createdUser.updatedAt = new Date();
+        // Initialize `resultUpdatedBy` if it doesn't exist
+        if (!battleDetails.resultUpdatedBy) {
+          battleDetails.resultUpdatedBy = {};
         }
+
+        // Initialize `createdUser` if it doesn't exist
+        if (!battleDetails.resultUpdatedBy.createdUser) {
+          battleDetails.resultUpdatedBy.createdUser = {};
+        }
+
+        // Update `createdUser`'s `matchStatus` and `updatedAt` if needed
         if (
-          battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus !==
+          battleDetails?.resultUpdatedBy?.createdUser?.matchStatus !==
           "CANCELLED"
         ) {
-          battleDetails.resultUpatedBy.acceptedUser.matchStatus = "CANCELLED";
-          battleDetails.resultUpatedBy.acceptedUser.updatedAt = new Date();
+          battleDetails.resultUpdatedBy.createdUser.matchStatus = "CANCELLED";
+          battleDetails.resultUpdatedBy.createdUser.updatedAt = new Date();
+        }
+
+        // Initialize `acceptedUser` if it doesn't exist
+        if (!battleDetails.resultUpdatedBy.acceptedUser) {
+          battleDetails.resultUpdatedBy.acceptedUser = {};
+        }
+
+        // Update `acceptedUser`'s `matchStatus` and `updatedAt` if needed
+        if (
+          battleDetails?.resultUpdatedBy?.acceptedUser?.matchStatus !==
+          "CANCELLED"
+        ) {
+          battleDetails.resultUpdatedBy.acceptedUser.matchStatus = "CANCELLED";
+          battleDetails.resultUpdatedBy.acceptedUser.updatedAt = new Date();
         }
       } else {
         if (winner?.toString() === battleDetails?.createdBy?.toString()) {
@@ -970,7 +985,6 @@ exports.updateBattleResultByAdmin = async (req, res) => {
           }
         }
       }
-
       await updateWinningAmountForWinner(battleDetails);
 
       // Update match details

@@ -40,7 +40,7 @@ const settingsSchema = new Schema(
     battleEarningPercentage: {
       type: Number,
       required: true,
-      default: 20,  // 20%
+      default: 20, // 20%
     },
   },
   {

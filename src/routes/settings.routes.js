@@ -16,6 +16,7 @@ const {
   penalty,
   updateBattleEarningPercentage,
   getUserDetails,
+  rejectKYC,
 } = require("../controllers/settingsController");
 const Validator = require("../validators/settings.validators");
 const router = express.Router();
@@ -430,6 +431,8 @@ router
  */
 
 router.route("/approve-kyc/:userId").post(verifyToken, approveKYC);
+
+router.route("/reject-kyc/:userId").post(verifyToken, rejectKYC);
 
 /**
  * @swagger

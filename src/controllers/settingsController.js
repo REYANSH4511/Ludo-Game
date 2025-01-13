@@ -165,6 +165,53 @@ exports.approveKYC = async (req, res) => {
   }
 };
 
+// reject kyc by admin
+exports.rejectKYC = async (req, res) => {
+  try {
+    const { _id, role } = req.user;
+    if (role === "user") {
+      return errorHandler({
+        res,
+        statusCode: 403,
+        message: getMessage("M015"),
+      });
+    }
+    const { userId } = req.params;
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M002"),
+      });
+    }
+    await User.findOneAndUpdate(
+      { _id: userId },
+      {
+        isKYCVerified: false,
+        kycDocument: {
+          aadharNumber: null,
+          name: null,
+          frontPhoto: null,
+          backPhoto: null,
+        },
+      },
+      { new: true }
+    );
+    return successHandler({
+      res,
+      statusCode: 200,
+      message: getMessage("M069"),
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
+
 // get settings config
 exports.getSettingsConfig = async (req, res) => {
   try {
@@ -317,7 +364,8 @@ exports.adminDashboard = async (req, res) => {
       getAggregateTotal(
         Transaction,
         {
-          $or: [{ type: "deposit" }, { type: "bonus" }],
+          type: "deposit",
+          status: "approved",
           isReferral: false,
           ...dateFilter,
         },
@@ -326,7 +374,8 @@ exports.adminDashboard = async (req, res) => {
       getAggregateTotal(
         Transaction,
         {
-          $or: [{ type: "withdraw" }, { type: "penalty" }],
+          type: "withdraw",
+          status: "approved",
           isReferral: false,
           ...dateFilter,
         },
@@ -752,14 +801,18 @@ exports.getUserDetails = async (req, res) => {
         .populate("referredUsers.userId", "name")
         .lean(),
       Transaction.find({
-        userId,
-        $or: [{ type: "deposit" }, { type: "bonus" }],
+        type: "deposit",
+        isReferral: false,
+        isWonCash: false,
+        isBattleTransaction: false,
       })
         .sort({ createdAt: -1 })
         .lean(),
       Transaction.find({
         userId,
-        $or: [{ type: "withdraw" }, { type: "penalty" }],
+        type: "withdraw",
+        isReferral: false,
+        isWonCash: false,
         isBattleTransaction: false,
       })
         .sort({ createdAt: -1 })
@@ -808,7 +861,7 @@ exports.getUserDetails = async (req, res) => {
     // Attach loss amount to user balance
     const userDetails = {
       ...user,
-      balance: { ...user.balance, loseAmount },
+      balance: { ...user?.balance, loseAmount },
       holdBalance:
         withdrawHistory.length > 0
           ? withdrawHistory.reduce(

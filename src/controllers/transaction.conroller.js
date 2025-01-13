@@ -88,11 +88,19 @@ exports.getTransactions = async (req, res) => {
   try {
     const { _id, role } = req.user;
     const { type } = req.query;
-    const filter = { isReferral: false };
+    const filter = {
+      isReferral: false,
+      isBattleTransaction: false,
+      isWonCash: false,
+    };
     if (role === "user") {
       filter.userId = _id;
     }
-    if (type) filter.type = type;
+    if (type) {
+      filter.type = type;
+    } else {
+      filter.type = ["deposit", "withdraw"];
+    }
 
     const transactionList = await Transaction.find(filter)
       .populate("userId", {

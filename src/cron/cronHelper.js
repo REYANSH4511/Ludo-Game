@@ -124,7 +124,6 @@ exports.updateBattleIFNoAcceptor = async () => {
     if (deletedBattles.deletedCount > 0) {
       console.log("deleted", deletedBattles.deletedCount);
     }
-
   } catch (err) {
     console.log("error", err);
   }
