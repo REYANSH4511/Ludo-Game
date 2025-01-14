@@ -69,7 +69,7 @@ exports.createBattle = async (req, res) => {
 
     const userDetails = await User.findOne({ _id }, { balance: 1 });
 
-    if (userDetails?.balance?.totalBalance < amount) {
+    if (userDetails?.balance?.totalWalletBalance < amount) {
       return errorHandler({
         res,
         statusCode: 400,
@@ -86,8 +86,7 @@ exports.createBattle = async (req, res) => {
       createdBy: _id,
       entryFee: amount,
       winnerAmount,
-      closingBalanceCreater:
-        userDetails.balance.totalBalance + userDetails.balance.cashWon,
+      closingBalanceCreater: userDetails.balance.totalWalletBalance,
     });
 
     return successHandler({
@@ -252,7 +251,7 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
       createdBy: { $ne: _id },
     });
 
-    if (userDetails?.balance?.totalBalance < battleDetails.entryFee) {
+    if (userDetails?.balance?.totalWalletBalance < battleDetails.entryFee) {
       return errorHandler({
         res,
         statusCode: 400,
@@ -261,7 +260,7 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
     }
     battleDetails.acceptedBy = _id;
     battleDetails.closingBalanceAccepter =
-      userDetails.balance.totalBalance + userDetails.balance.cashWon;
+      userDetails.balance.totalWalletBalance;
     await battleDetails.save();
 
     await Battle.deleteOne({

@@ -30,9 +30,13 @@ const Validators = {
     type: Joi.string().valid("deposit", "withdraw", "referral").required(),
     utrNo: Joi.when("type", {
       is: "deposit",
-      then: Joi.string().required().messages({
-        "any.required": "UTR No is required when type is 'deposit'.",
-      }),
+      then: Joi.string()
+        .required()
+        .pattern(/^\d{12}$/)
+        .messages({
+          "string.pattern.base": "UTR No must be a 12-digit number.",
+          "any.required": "UTR No is required when type is 'deposit'.",
+        }),   
       otherwise: Joi.optional(),
     }),
     amount: Joi.number().positive().required(),

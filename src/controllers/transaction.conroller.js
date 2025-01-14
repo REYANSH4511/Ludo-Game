@@ -21,13 +21,15 @@ exports.createTransaction = async (req, res) => {
 
     const payload = { userId: _id, amount, type, userDetails };
     const user = await User.findOne({ _id }, { balance: 1 });
-    if (Number(amount) < 50) {
+    if (Number(amount) < 100) {
       return errorHandler({
         res,
         statusCode: 400,
         message: getMessage("M056"),
       });
     }
+
+    payload.closingBalance = user.balance.totalWalletBalance;
 
     if (type === "withdraw") {
       if (user?.balance?.cashWon < amount) {
@@ -45,6 +47,7 @@ exports.createTransaction = async (req, res) => {
         payload.bankAccountDetails = bankAccountDetails;
       }
       user.balance.cashWon -= amount;
+      user.balance.totalWalletBalance -= amount;
     } else if (type === "deposit") {
       payload.utrNo = utrNo;
       payload.screenShot = screenShot;
@@ -62,8 +65,6 @@ exports.createTransaction = async (req, res) => {
       payload.isReferral = true;
       user.balance.referralEarning -= amount;
     }
-
-    payload.closingBalance = user.balance.totalBalance + user.balance.cashWon;
 
     await Transaction.create(payload);
 
@@ -99,7 +100,7 @@ exports.getTransactions = async (req, res) => {
     if (type) {
       filter.type = type;
     } else {
-      filter.type = ["deposit", "withdraw"];
+      filter.type = ["deposit", "withdraw", "bonus", "penalty"];
     }
 
     const transactionList = await Transaction.find(filter)
@@ -169,9 +170,15 @@ exports.transactionResponse = async (req, res) => {
     if (isApproved) {
       user.balance.totalBalance =
         data.type === "deposit" && user.balance.totalBalance + data.amount;
+      user.balance.totalWalletBalance =
+        data.type === "deposit" &&
+        user.balance.totalWalletBalance + data.amount;
     } else {
       user.balance.cashWon =
         data.type === "withdraw" && user.balance.cashWon + data.amount;
+      user.balance.totalWalletBalance =
+        data.type === "withdraw" &&
+        user.balance.totalWalletBalance + data.amount;
       user.balance.referralEarning =
         data.type === "referral" && user.balance.referralEarning + data.amount;
     }

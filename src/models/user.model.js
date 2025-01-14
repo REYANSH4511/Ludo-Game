@@ -29,6 +29,10 @@ const balanceSchema = new Schema({
     type: Number,
     default: 0,
   },
+  totalWalletBalance: {
+    type: Number,
+    default: 0,
+  },
   totalBalance: {
     type: Number,
     default: 0,

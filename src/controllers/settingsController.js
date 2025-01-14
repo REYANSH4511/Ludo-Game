@@ -388,7 +388,11 @@ exports.adminDashboard = async (req, res) => {
         isBattleRequestAccepted: true,
         ...dateFilter,
       }),
-      getCount(Battle, { status: "CANCELLED", ...dateFilter }),
+      getCount(Battle, {
+        status: "CLOSED",
+        matchStatus: "CANCELLED",
+        ...dateFilter,
+      }),
       getCount(Battle, {
         status: "CLOSED",
         matchStatus: "COMPLETED",
@@ -416,7 +420,12 @@ exports.adminDashboard = async (req, res) => {
       }),
       getAggregateTotal(
         Transaction,
-        { type: "withdraw", isBattleTransaction: false, ...dateFilter },
+        {
+          type: "withdraw",
+          isBattleTransaction: false,
+          status: "approved",
+          ...dateFilter,
+        },
         "amount"
       ),
       getAggregateTotal(BattleCommission, { ...dateFilter }, "amount"),
@@ -574,15 +583,15 @@ exports.penalty = async (req, res) => {
     } else {
       user.balance.totalBalance -= amount;
     }
-
     await Transaction.create({
       type: "penalty",
       userId,
       amount: amount,
       status: "approved",
-      closingBalance: user.balance.totalBalance + user.balance.cashWon,
+      closingBalance: user.balance.totalWalletBalance,
     });
 
+    user.balance.totalWalletBalance -= amount;
     user.balance.penalty += amount;
     user.save();
 
@@ -661,9 +670,10 @@ exports.addBonus = async (req, res) => {
       userId,
       amount,
       status: "approved",
-      closingBalance: user.balance.totalBalance + user.balance.cashWon,
+      closingBalance: user.balance.totalWalletBalance,
     });
 
+    user.balance.totalWalletBalance += amount;
     user.balance.totalBalance += amount;
     user.balance.bonus += amount;
     user.save();
@@ -801,6 +811,7 @@ exports.getUserDetails = async (req, res) => {
         .populate("referredUsers.userId", "name")
         .lean(),
       Transaction.find({
+        userId,
         type: "deposit",
         isReferral: false,
         isWonCash: false,

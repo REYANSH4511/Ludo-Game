@@ -18,11 +18,11 @@ const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
       status: "approved",
       isBattleTransaction: true,
       battleId: battleId,
-      closingBalance:
-        userDetails.balance.totalBalance + userDetails.balance.cashWon,
+      closingBalance: userDetails?.balance?.totalWalletBalance,
     });
     userDetails.balance.totalBalance -= entryFee;
     userDetails.balance.battlePlayed += 1;
+    userDetails.balance.totalWalletBalance -= entryFee;
     userDetails.save();
   } catch (error) {
     console.error("Error updating transaction or user:", error);
@@ -75,10 +75,10 @@ const updateWinningAmountForWinner = async (data) => {
         isBattleTransaction: true,
         battleId: data.battleId,
         isWonCash: true,
-        closingBalance:
-          userDetails.balance.totalBalance + userDetails.balance.cashWon,
+        closingBalance: userDetails?.balance?.totalWalletBalance,
       });
 
+      userDetails.balance.totalWalletBalance += data.winnerAmount;
       userDetails.balance.cashWon += data.winnerAmount;
 
       await userDetails.save();
@@ -91,7 +91,7 @@ const updateWinningAmountForWinner = async (data) => {
       );
       const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
       const commisionAmount = data?.entryFee * (battleEarningPercentage / 100);
-      
+
       await BattleCommission.create({
         amount: commisionAmount,
         commissionPercentage: battleEarningPercentage,
@@ -158,6 +158,10 @@ const updateWinningAmountByUsers = async (battle) => {
           battle.loser = null;
           battle.matchStatus = "CANCELLED";
           battle.status = "CLOSED";
+        } else {
+          battle.winner = null;
+          battle.loser = null;
+          battle.status = "CONFLICT";
         }
         battle.paymentStatus = "COMPLETED";
         await updateWinningAmountForWinner(battle);
