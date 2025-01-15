@@ -214,7 +214,9 @@ exports.battlesListForAllUser = async (req, res) => {
         return battleObj;
       });
 
-    const liveBattles = battles.filter((battle) => battle.status === "PLAYING");
+    const liveBattles = battles.filter(
+      (battle) => battle.status === "PLAYING" || battle.status === "CONFLICT"
+    );
 
     return successHandler({
       res,

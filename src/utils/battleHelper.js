@@ -52,6 +52,7 @@ const updateWinningAmountForWinner = async (data) => {
 
       if (createdUserTransaction.deletedCount > 0) {
         createdUser.balance.totalBalance += data.entryFee;
+        createdUser.balance.totalWalletBalance += data.entryFee;
       }
 
       const acceptedUserTransaction = await Transaction.deleteOne({
@@ -61,6 +62,7 @@ const updateWinningAmountForWinner = async (data) => {
 
       if (acceptedUserTransaction.deletedCount > 0) {
         acceptedUser.balance.totalBalance += data.entryFee;
+        acceptedUser.balance.totalWalletBalance += data.entryFee;
       }
 
       await createdUser.save();
@@ -93,7 +95,7 @@ const updateWinningAmountForWinner = async (data) => {
         {},
         { battleEarningPercentage: 1, referralAmountPercentage: 1 }
       );
-      
+
       const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
       const commisionAmount = data?.entryFee * (battleEarningPercentage / 100);
 

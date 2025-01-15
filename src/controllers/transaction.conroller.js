@@ -37,6 +37,19 @@ exports.createTransaction = async (req, res) => {
           message: getMessage("M043"),
         });
       }
+      const transaction = await Transaction.findOne({
+        userId: _id,
+        type: "withdraw",
+        status: "pending",
+      });
+
+      if (transaction) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M071"),
+        });
+      }
 
       payload.paymentMethod = paymentMethod;
       if (paymentMethod === "upi") {

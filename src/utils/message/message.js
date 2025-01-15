@@ -69,4 +69,5 @@ exports.messageList = {
   M068: "User details fetched successfully!",
   M069: "KYC rejected successfully!",
   M070: "Invalid request!",
+  M071: "One withdraw request already exists!",
 };
