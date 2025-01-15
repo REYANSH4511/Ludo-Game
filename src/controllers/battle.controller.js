@@ -304,7 +304,7 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
       return errorHandler({
         res,
         statusCode: 404,
-        message: getMessage("M016"),
+        message: getMessage("M041"),
       });
     }
 
