@@ -166,7 +166,11 @@ exports.battlesListForAllUser = async (req, res) => {
 
     const battles = await Battle.find(
       {
-        $or: [{ status: "PLAYING" }, { status: "OPEN" }],
+        $or: [
+          { status: "PLAYING" },
+          { status: "OPEN" },
+          { status: "CONFLICT" },
+        ],
       },
       {
         entryFee: 1,

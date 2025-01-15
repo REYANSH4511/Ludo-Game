@@ -1,3 +1,4 @@
+const Battle = require("../models/battle.model");
 const Settings = require("../models/settings.model");
 const Transaction = require("../models/transaction.model");
 const User = require("../models/user.model");
@@ -42,6 +43,23 @@ exports.createTransaction = async (req, res) => {
         type: "withdraw",
         status: "pending",
       });
+      
+      const battle = await Battle.findOne({
+        $or: [{ acceptedBy: _id }, { createdBy: _id }],
+        $or: [
+          { status: "OPEN" },
+          { status: "PLAYING" },
+          { status: "CONFLICT" },
+        ],
+      });
+
+      if (battle) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M072"),
+        });
+      }
 
       if (transaction) {
         return errorHandler({
