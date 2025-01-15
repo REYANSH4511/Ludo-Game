@@ -46,7 +46,7 @@ exports.createBattle = async (req, res) => {
       status: "PLAYING",
     });
 
-    if (checkPlayingBattle.acceptedBy.toString() === _id.toString()) {
+    if (checkPlayingBattle?.acceptedBy?.toString() === _id?.toString()) {
       if (!checkPlayingBattle?.resultUpatedBy?.acceptedUser?.matchStatus) {
         return errorHandler({
           res,
@@ -56,7 +56,7 @@ exports.createBattle = async (req, res) => {
       }
     }
 
-    if (checkPlayingBattle.createdBy.toString() === _id.toString()) {
+    if (checkPlayingBattle?.createdBy?.toString() === _id?.toString()) {
       if (!checkPlayingBattle?.resultUpatedBy?.createdUser?.matchStatus) {
         return errorHandler({
           res,
