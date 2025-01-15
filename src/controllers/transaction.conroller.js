@@ -43,7 +43,7 @@ exports.createTransaction = async (req, res) => {
         type: "withdraw",
         status: "pending",
       });
-      
+
       const battle = await Battle.findOne({
         $or: [{ acceptedBy: _id }, { createdBy: _id }],
         $or: [
@@ -121,7 +121,7 @@ exports.getTransactions = async (req, res) => {
     const { _id, role } = req.user;
     const { type } = req.query;
     const filter = {
-      isReferral: false,
+      isReferral: true,
       isBattleTransaction: false,
       isWonCash: false,
     };
@@ -131,7 +131,7 @@ exports.getTransactions = async (req, res) => {
     if (type) {
       filter.type = type;
     } else {
-      filter.type = ["deposit", "withdraw", "bonus", "penalty"];
+      filter.type = ["deposit", "withdraw", "bonus", "penalty", "referral"];
     }
 
     const transactionList = await Transaction.find(filter)

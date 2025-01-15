@@ -23,7 +23,13 @@ const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
       battleId: battleId,
       closingBalance: userDetails?.balance?.totalWalletBalance,
     });
-    userDetails.balance.totalBalance -= entryFee;
+    if (userDetails?.balance?.totalBalance < entryFee) {
+      const withdrawAmount = entryFee - userDetails?.balance?.totalBalance;
+      userDetails.balance.totalBalance = 0;
+      userDetails.balance.cashWon -= withdrawAmount;
+    } else {
+      userDetails.balance.totalBalance -= entryFee;
+    }
     userDetails.balance.battlePlayed += 1;
     userDetails.save();
   } catch (error) {
