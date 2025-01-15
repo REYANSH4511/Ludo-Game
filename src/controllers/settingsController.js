@@ -869,7 +869,8 @@ exports.getUserDetails = async (req, res) => {
           ? "WIN"
           : "LOSE"
         : "CANCELLED";
-      isBattleCreatedByUser = battle?.createdBy?._id.toString() === userId;
+      battle.isBattleCreatedByUser =
+        battle?.createdBy?._id.toString() === userId?.toString();
     });
 
     // Attach loss amount to user balance
@@ -901,7 +902,10 @@ exports.getUserDetails = async (req, res) => {
       totalDepositAmount:
         depositHistory.length > 0
           ? depositHistory?.reduce(
-              (total, transaction) => total + transaction?.amount,
+              (total, transaction) =>
+                total + transaction?.status === "approved"
+                  ? transaction?.amount
+                  : 0,
               0
             )
           : 0,

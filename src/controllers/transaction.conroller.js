@@ -93,6 +93,9 @@ exports.createTransaction = async (req, res) => {
 
       payload.isReferral = true;
       user.balance.referralEarning -= amount;
+      payload.status = "approved";
+      user.balance.totalWalletBalance += amount;
+      user.balance.totalBalance += amount;
     }
 
     payload.closingBalance = user.balance.totalWalletBalance;
