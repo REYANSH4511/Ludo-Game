@@ -172,10 +172,6 @@ exports.transactionResponse = async (req, res) => {
         user.balance.totalBalance = user.balance.totalBalance + data.amount;
         user.balance.totalWalletBalance =
           user.balance.totalWalletBalance + data.amount;
-      } else if (type === "withdraw") {
-        user.balance.cashWon = user.balance.cashWon - data.amount;
-        user.balance.totalWalletBalance =
-          user.balance.totalWalletBalance - data.amount;
       }
     } else {
       user.balance.cashWon =
