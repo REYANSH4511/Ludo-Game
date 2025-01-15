@@ -168,19 +168,20 @@ exports.transactionResponse = async (req, res) => {
     const user = await User.findOne({ _id: data?.userId });
 
     if (isApproved) {
-      if (type === "deposit") {
+      if (data.type === "deposit") {
         user.balance.totalBalance = user.balance.totalBalance + data.amount;
         user.balance.totalWalletBalance =
           user.balance.totalWalletBalance + data.amount;
       }
     } else {
-      user.balance.cashWon =
-        data.type === "withdraw" && user.balance.cashWon + data.amount;
-      user.balance.totalWalletBalance =
-        data.type === "withdraw" &&
-        user.balance.totalWalletBalance + data.amount;
-      user.balance.referralEarning =
-        data.type === "referral" && user.balance.referralEarning + data.amount;
+      if (data.type === "withdraw") {
+        user.balance.cashWon = user.balance.cashWon + data.amount;
+        user.balance.totalWalletBalance =
+          user.balance.totalWalletBalance + data.amount;
+      } else if (data.type === "referral") {
+        user.balance.referralEarning =
+          user.balance.referralEarning + data.amount;
+      }
     }
     await user.save();
     return successHandler({

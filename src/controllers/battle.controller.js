@@ -45,13 +45,27 @@ exports.createBattle = async (req, res) => {
       $or: [{ createdBy: _id }, { acceptedBy: _id }],
       status: "PLAYING",
     });
-    if (checkPlayingBattle) {
-      return errorHandler({
-        res,
-        statusCode: 400,
-        message: getMessage("M036"),
-      });
+
+    if (checkPlayingBattle.acceptedBy.toString() === _id.toString()) {
+      if (!checkPlayingBattle?.resultUpatedBy?.acceptedUser?.matchStatus) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M036"),
+        });
+      }
     }
+
+    if (checkPlayingBattle.createdBy.toString() === _id.toString()) {
+      if (!checkPlayingBattle?.resultUpatedBy?.createdUser?.matchStatus) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M036"),
+        });
+      }
+    }
+
     const checkOpenBattle = await Battle.find({
       createdBy: _id,
       status: "OPEN",
@@ -986,7 +1000,6 @@ exports.updateBattleResultByAdmin = async (req, res) => {
           }
         }
       }
-      await updateWinningAmountForWinner(battleDetails);
 
       // Update match details
       Object.assign(battleDetails, {
@@ -997,6 +1010,8 @@ exports.updateBattleResultByAdmin = async (req, res) => {
         paymentStatus: "COMPLETED",
       });
     }
+
+    await updateWinningAmountForWinner(battleDetails);
 
     await battleDetails.save();
 
