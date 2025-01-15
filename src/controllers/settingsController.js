@@ -583,6 +583,8 @@ exports.penalty = async (req, res) => {
     } else {
       user.balance.totalBalance -= amount;
     }
+    user.balance.totalWalletBalance -= amount;
+
     await Transaction.create({
       type: "penalty",
       userId,
@@ -591,7 +593,6 @@ exports.penalty = async (req, res) => {
       closingBalance: user.balance.totalWalletBalance,
     });
 
-    user.balance.totalWalletBalance -= amount;
     user.balance.penalty += amount;
     user.save();
 
@@ -665,6 +666,9 @@ exports.addBonus = async (req, res) => {
         message: getMessage("M002"),
       });
     }
+
+    user.balance.totalWalletBalance += amount;
+
     await Transaction.create({
       type: "bonus",
       userId,
@@ -673,7 +677,6 @@ exports.addBonus = async (req, res) => {
       closingBalance: user.balance.totalWalletBalance,
     });
 
-    user.balance.totalWalletBalance += amount;
     user.balance.totalBalance += amount;
     user.balance.bonus += amount;
     user.save();

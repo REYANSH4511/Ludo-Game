@@ -21,15 +21,13 @@ exports.createTransaction = async (req, res) => {
 
     const payload = { userId: _id, amount, type, userDetails };
     const user = await User.findOne({ _id }, { balance: 1 });
-    if (Number(amount) < 100) {
+    if (Number(amount) < 95) {
       return errorHandler({
         res,
         statusCode: 400,
         message: getMessage("M056"),
       });
     }
-
-    payload.closingBalance = user.balance.totalWalletBalance;
 
     if (type === "withdraw") {
       if (user?.balance?.cashWon < amount) {
@@ -65,6 +63,8 @@ exports.createTransaction = async (req, res) => {
       payload.isReferral = true;
       user.balance.referralEarning -= amount;
     }
+
+    payload.closingBalance = user.balance.totalWalletBalance;
 
     await Transaction.create(payload);
 

@@ -11,6 +11,9 @@ const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
     if (userDetails?.balance?.totalBalance < entryFee) {
       throw new Error("Insufficient balance");
     }
+
+    userDetails.balance.totalWalletBalance -= entryFee;
+
     await Transaction.create({
       userId: userId,
       type: "withdraw",
@@ -22,7 +25,6 @@ const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
     });
     userDetails.balance.totalBalance -= entryFee;
     userDetails.balance.battlePlayed += 1;
-    userDetails.balance.totalWalletBalance -= entryFee;
     userDetails.save();
   } catch (error) {
     console.error("Error updating transaction or user:", error);
@@ -67,6 +69,8 @@ const updateWinningAmountForWinner = async (data) => {
       if (!data.winner) return;
       const userDetails = await User.findOne({ _id: data.winner });
 
+      userDetails.balance.totalWalletBalance += data.winnerAmount;
+
       await Transaction.create({
         userId: data.winner,
         type: "deposit",
@@ -78,17 +82,18 @@ const updateWinningAmountForWinner = async (data) => {
         closingBalance: userDetails?.balance?.totalWalletBalance,
       });
 
-      userDetails.balance.totalWalletBalance += data.winnerAmount;
       userDetails.balance.cashWon += data.winnerAmount;
 
       await userDetails.save();
       const referredUserDetails = await User.findOne({
         _id: userDetails?.referedBy,
       });
+
       const settings = await Settings.findOne(
         {},
         { battleEarningPercentage: 1, referralAmountPercentage: 1 }
       );
+      
       const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
       const commisionAmount = data?.entryFee * (battleEarningPercentage / 100);
 
