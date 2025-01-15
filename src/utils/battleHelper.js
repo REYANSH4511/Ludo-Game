@@ -8,7 +8,7 @@ const BattleCommission = require("../models/battleCommission.model");
 const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
   try {
     const userDetails = await User.findOne({ _id: userId }, { balance: 1 });
-    if (userDetails?.balance?.totalBalance < entryFee) {
+    if (userDetails?.balance?.totalWalletBalance < entryFee) {
       throw new Error("Insufficient balance");
     }
 
@@ -109,7 +109,7 @@ const updateWinningAmountForWinner = async (data) => {
         const referralEarningPercentage =
           settings?.referralAmountPercentage || 0;
         const referralAmount = Math.round(
-          (data.entryFee * referralEarningPercentage) / 100
+          (data?.entryFee * referralEarningPercentage) / 100
         );
         // Add 2% of the winning amount to the referrer's referralEarning
         referredUserDetails.balance.referralEarning += referralAmount;
