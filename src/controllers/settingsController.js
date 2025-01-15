@@ -146,11 +146,11 @@ exports.approveKYC = async (req, res) => {
         message: getMessage("M002"),
       });
     }
-    await User.findOneAndUpdate(
-      { _id: userId },
-      { isKYCVerified: true },
-      { new: true }
-    );
+
+    user.name = user.kycDocument.name;
+    user.isKYCVerified = true;
+    user.save();
+
     return successHandler({
       res,
       statusCode: 200,
@@ -849,6 +849,7 @@ exports.getUserDetails = async (req, res) => {
         .populate("acceptedBy", "name")
         .populate("winner", "name")
         .populate("loser", "name")
+        .sort({ createdAt: -1 })
         .lean(),
     ]);
 
