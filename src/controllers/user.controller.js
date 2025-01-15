@@ -6,7 +6,6 @@ const dayjs = require("dayjs");
 const { createAuthResponse } = require("../utils/authHelper");
 const { hashPassword, comparePassword } = require("../utils/passwordHelper");
 const crypto = require("crypto");
-const Transaction = require("../models/transaction.model");
 const axios = require("axios");
 const Settings = require("../models/settings.model");
 const {
@@ -124,6 +123,7 @@ exports.verifyOTP = async (req, res) => {
         referalCode,
         mobileNo: { $ne: mobileNo },
       });
+
       if (!referalUser)
         return errorHandler({
           res,

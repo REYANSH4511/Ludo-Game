@@ -928,36 +928,36 @@ exports.updateBattleResultByAdmin = async (req, res) => {
 
       if (isCancelled) {
         // Initialize `resultUpdatedBy` if it doesn't exist
-        if (!battleDetails.resultUpdatedBy) {
-          battleDetails.resultUpdatedBy = {};
+        if (!battleDetails.resultUpatedBy) {
+          battleDetails.resultUpatedBy = {};
         }
 
         // Initialize `createdUser` if it doesn't exist
-        if (!battleDetails.resultUpdatedBy.createdUser) {
-          battleDetails.resultUpdatedBy.createdUser = {};
+        if (!battleDetails.resultUpatedBy.createdUser) {
+          battleDetails.resultUpatedBy.createdUser = {};
         }
 
         // Update `createdUser`'s `matchStatus` and `updatedAt` if needed
         if (
-          battleDetails?.resultUpdatedBy?.createdUser?.matchStatus !==
+          battleDetails?.resultUpatedBy?.createdUser?.matchStatus !==
           "CANCELLED"
         ) {
-          battleDetails.resultUpdatedBy.createdUser.matchStatus = "CANCELLED";
-          battleDetails.resultUpdatedBy.createdUser.updatedAt = new Date();
+          battleDetails.resultUpatedBy.createdUser.matchStatus = "CANCELLED";
+          battleDetails.resultUpatedBy.createdUser.updatedAt = new Date();
         }
 
         // Initialize `acceptedUser` if it doesn't exist
-        if (!battleDetails.resultUpdatedBy.acceptedUser) {
-          battleDetails.resultUpdatedBy.acceptedUser = {};
+        if (!battleDetails.resultUpatedBy.acceptedUser) {
+          battleDetails.resultUpatedBy.acceptedUser = {};
         }
 
         // Update `acceptedUser`'s `matchStatus` and `updatedAt` if needed
         if (
-          battleDetails?.resultUpdatedBy?.acceptedUser?.matchStatus !==
+          battleDetails?.resultUpatedBy?.acceptedUser?.matchStatus !==
           "CANCELLED"
         ) {
-          battleDetails.resultUpdatedBy.acceptedUser.matchStatus = "CANCELLED";
-          battleDetails.resultUpdatedBy.acceptedUser.updatedAt = new Date();
+          battleDetails.resultUpatedBy.acceptedUser.matchStatus = "CANCELLED";
+          battleDetails.resultUpatedBy.acceptedUser.updatedAt = new Date();
         }
       } else {
         if (winner?.toString() === battleDetails?.createdBy?.toString()) {
