@@ -354,12 +354,10 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
         payload.closingBalanceAccepter = null;
         payload.isBattleRequestAccepted = false;
       } else if (battleDetails.acceptedBy?.toString() === _id.toString()) {
-        payload.resultUpatedBy = payload.resultUpatedBy || {};
-        payload.resultUpatedBy.acceptedUser = {
-          matchStatus: "CANCELLED",
-          cancellationReason: "notJoined",
-        };
-        payload.status = "CLOSED";
+        payload.acceptedBy = null;
+        payload.acceptedDate = null;
+        payload.closingBalanceAccepter = null;
+        payload.isBattleRequestAccepted = false;
       } else {
         return errorHandler({
           res,
@@ -371,7 +369,7 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
       return errorHandler({
         res,
         statusCode: 400,
-        message: getMessage("M018"),
+        message: getMessage("M070"),
       });
     }
 
