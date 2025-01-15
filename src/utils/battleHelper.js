@@ -109,7 +109,7 @@ const updateWinningAmountForWinner = async (data) => {
         const referralEarningPercentage =
           settings?.referralAmountPercentage || 0;
         const referralAmount = Math.round(
-          (data.winnerAmount * referralEarningPercentage) / 100
+          (data.entryFee * referralEarningPercentage) / 100
         );
         // Add 2% of the winning amount to the referrer's referralEarning
         referredUserDetails.balance.referralEarning += referralAmount;
