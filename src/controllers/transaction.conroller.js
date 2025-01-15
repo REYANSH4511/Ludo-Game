@@ -168,11 +168,15 @@ exports.transactionResponse = async (req, res) => {
     const user = await User.findOne({ _id: data?.userId });
 
     if (isApproved) {
-      user.balance.totalBalance =
-        data.type === "deposit" && user.balance.totalBalance + data.amount;
-      user.balance.totalWalletBalance =
-        data.type === "deposit" &&
-        user.balance.totalWalletBalance + data.amount;
+      if (type === "deposit") {
+        user.balance.totalBalance = user.balance.totalBalance + data.amount;
+        user.balance.totalWalletBalance =
+          user.balance.totalWalletBalance + data.amount;
+      } else if (type === "withdraw") {
+        user.balance.cashWon = user.balance.cashWon - data.amount;
+        user.balance.totalWalletBalance =
+          user.balance.totalWalletBalance - data.amount;
+      }
     } else {
       user.balance.cashWon =
         data.type === "withdraw" && user.balance.cashWon + data.amount;
