@@ -94,7 +94,7 @@ exports.createBattle = async (req, res) => {
     const settings = await Settings.findOne({}, { battleEarningPercentage: 1 });
     const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
     const commisionAmount = amount * (battleEarningPercentage / 100);
-    const winnerAmount = amount * 2 - commisionAmount;
+    const winnerAmount = Math.round(amount * 2 - commisionAmount);
 
     await Battle.create({
       createdBy: _id,
