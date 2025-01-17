@@ -360,13 +360,22 @@ exports.adminDashboard = async (req, res) => {
       getCount(User, { role: "admin", ...dateFilter }),
       getCount(User, { role: "admin", isActive: true, ...dateFilter }),
       getCount(User, { role: "admin", isActive: false, ...dateFilter }),
-      getCount(Transaction, { isReferral: false, ...dateFilter }),
+      getCount(Transaction, {
+        type: "deposit",
+        status: "approved",
+        isReferral: false,
+        isBattleTransaction: false,
+        isWonCash: false,
+        ...dateFilter,
+      }),
       getAggregateTotal(
         Transaction,
         {
           type: "deposit",
           status: "approved",
           isReferral: false,
+          isBattleTransaction: false,
+          isWonCash: false,
           ...dateFilter,
         },
         "amount"
@@ -431,7 +440,12 @@ exports.adminDashboard = async (req, res) => {
       getAggregateTotal(BattleCommission, { ...dateFilter }, "amount"),
       getAggregateTotal(
         Transaction,
-        { type: "deposit", isReferral: true, ...dateFilter },
+        {
+          type: "deposit",
+          isReferral: true,
+          isBattleTransaction: true,
+          ...dateFilter,
+        },
         "amount"
       ),
       getAggregateTotal(

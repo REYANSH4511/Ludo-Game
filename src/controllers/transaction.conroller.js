@@ -123,13 +123,11 @@ exports.getTransactions = async (req, res) => {
   try {
     const { _id, role } = req.user;
     const { type } = req.query;
-    const filter = {
-      isReferral: true,
-      isBattleTransaction: false,
-      isWonCash: false,
-    };
+    const filter = {};
     if (role === "user") {
       filter.userId = _id;
+      filter.isBattleTransaction = false;
+      filter.isWonCash = false;
     }
     if (type) {
       filter.type = type;

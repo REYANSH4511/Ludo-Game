@@ -1,6 +1,5 @@
 const Joi = require("joi");
 const { errorHandler } = require("../utils/responseHandler");
-const { isCancel } = require("axios");
 
 const Validators = {
   validCreateBattle: Joi.object({
@@ -12,7 +11,9 @@ const Validators = {
   }),
   validEnterRoomNumber: Joi.object({
     battleId: Joi.string().required(),
-    roomNumber: Joi.string().required(),
+    roomNumber: Joi.string()
+      .pattern(/^\d{8}$/)
+      .required(),
   }),
   ValidUpdateBattleResultByUser: Joi.object({
     battleId: Joi.string().required(),

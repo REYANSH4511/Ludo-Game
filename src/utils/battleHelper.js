@@ -125,6 +125,17 @@ const updateWinningAmountForWinner = async (data) => {
           (user) => user.userId.toString() === data.winner.toString()
         );
 
+        await Transaction.create({
+          userId: referredUserDetails._id,
+          type: "deposit",
+          amount: referralAmount,
+          status: "approved",
+          isBattleTransaction: true,
+          battleId: data.battleId,
+          isReferral: true,
+          closingBalance: referredUserDetails?.balance?.totalWalletBalance,
+        });
+        
         if (referredUser) {
           // Update referralEarning for the user in the referredUsers array
           referredUser.referralEarning += referralAmount;
