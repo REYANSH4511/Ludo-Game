@@ -23,6 +23,7 @@ const updateTransactionForStartingGame = async (userId, entryFee, battleId) => {
       battleId: battleId,
       closingBalance: userDetails?.balance?.totalWalletBalance,
     });
+
     if (userDetails?.balance?.totalBalance < entryFee) {
       const withdrawAmount = entryFee - userDetails?.balance?.totalBalance;
       userDetails.balance.totalBalance = 0;
@@ -197,7 +198,6 @@ const updateWinningAmountByUsers = async (battle) => {
   }
 };
 
-
 const updateWalletAndDeleteTransaction = async (userId, entryFee, battleId) => {
   const user = await User.findOne({ _id: userId });
   const transaction = await Transaction.deleteOne({
@@ -211,7 +211,6 @@ const updateWalletAndDeleteTransaction = async (userId, entryFee, battleId) => {
     await user.save();
   }
 };
-
 
 module.exports = {
   updateTransactionForStartingGame,

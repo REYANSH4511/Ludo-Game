@@ -319,7 +319,7 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
     await battleDetails.save();
 
     const battlesToDelete = await Battle.find({
-      _id: { $ne: mongoose.Types.ObjectId(battleId) },
+      _id: { $ne: new mongoose.Types.ObjectId(battleId) },
       status: "OPEN",
       $or: [
         {
@@ -415,7 +415,7 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
         );
 
         const battlesToDelete = await Battle.find({
-          _id: { $ne: mongoose.Types.ObjectId(battleId) },
+          _id: { $ne: new mongoose.Types.ObjectId(battleId) },
           status: "OPEN",
           $or: [
             {
