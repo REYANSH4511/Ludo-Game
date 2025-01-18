@@ -585,18 +585,22 @@ exports.penalty = async (req, res) => {
         message: getMessage("M002"),
       });
     }
+    if (user.balance.totalWalletBalance < amount) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M043"),
+      });
+    }
+
     if (user.balance.totalBalance < amount) {
-      if (user.balance.cashWon < amount) {
-        return errorHandler({
-          res,
-          statusCode: 400,
-          message: getMessage("M043"),
-        });
-      }
-      user.balance.cashWon -= amount;
+      const diff = amount - user.balance.totalBalance;
+      user.balance.totalBalance = 0;
+      user.balance.cashWon -= diff;
     } else {
       user.balance.totalBalance -= amount;
     }
+
     user.balance.totalWalletBalance -= amount;
 
     await Transaction.create({
@@ -918,6 +922,7 @@ exports.getUserDetails = async (req, res) => {
       (total, transaction) => total + transaction.amount,
       0
     );
+
     // Attach loss amount to user balance
     const userDetails = {
       ...user,
@@ -931,32 +936,31 @@ exports.getUserDetails = async (req, res) => {
         withdrawHistory.length > 0
           ? withdrawHistory.reduce(
               (total, transaction) =>
-                transaction.status === "pending"
-                  ? total + transaction.amount
+                transaction?.status === "pending"
+                  ? total + (transaction?.amount || 0)
                   : total,
               0
             )
           : 0,
+
       totalReferralCount: referralCount,
-      totalReferralAmountCredited,
       missmatchWalletBallance: 0,
       totalWithdrawAmount:
         withdrawHistory.length > 0
           ? withdrawHistory.reduce(
               (total, transaction) =>
-                transaction.status === "approved"
-                  ? total + transaction.amount
+                transaction?.status === "approved"
+                  ? total + (transaction?.amount || 0)
                   : total,
               0
             )
           : 0,
       totalDepositAmount:
         depositHistory.length > 0
-          ? depositHistory?.reduce(
+          ? depositHistory.reduce(
               (total, transaction) =>
-                total + transaction?.status === "approved"
-                  ? transaction?.amount
-                  : 0,
+                total +
+                (transaction?.status === "approved" ? transaction?.amount : 0),
               0
             )
           : 0,

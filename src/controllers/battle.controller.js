@@ -308,10 +308,10 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
       userDetails.balance.totalWalletBalance;
     await battleDetails.save();
 
-    await Battle.deleteOne({
+    await Battle.deleteMany({
       _id: { $ne: battleId },
       status: "OPEN",
-      createdBy: _id,
+      createdBy: { $in: [battleDetails.createdBy, battleDetails.acceptedBy] },
     });
 
     return successHandler({
