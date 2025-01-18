@@ -48,12 +48,12 @@ const updateWinningAmountForWinner = async (data) => {
       data.resultUpatedBy?.acceptedUser?.matchStatus === "CANCELLED" &&
       data.resultUpatedBy?.createdUser?.matchStatus === "CANCELLED"
     ) {
-      const createdUser = await User.findOne({ _id: data.createdBy });
-      const acceptedUser = await User.findOne({ _id: data.acceptedBy });
+      const createdUser = await User.findOne({ _id: data?.createdBy });
+      const acceptedUser = await User.findOne({ _id: data?.acceptedBy });
 
       const createdUserTransaction = await Transaction.deleteOne({
         battleId: data?._id,
-        userId: data.createdBy,
+        userId: data?.createdBy,
       });
 
       if (createdUserTransaction.deletedCount > 0) {
@@ -63,7 +63,7 @@ const updateWinningAmountForWinner = async (data) => {
 
       const acceptedUserTransaction = await Transaction.deleteOne({
         battleId: data?._id,
-        userId: data.acceptedBy,
+        userId: data?.acceptedBy,
       });
 
       if (acceptedUserTransaction.deletedCount > 0) {
@@ -135,7 +135,7 @@ const updateWinningAmountForWinner = async (data) => {
           isReferral: true,
           closingBalance: referredUserDetails?.balance?.totalWalletBalance,
         });
-        
+
         if (referredUser) {
           // Update referralEarning for the user in the referredUsers array
           referredUser.referralEarning += referralAmount;
@@ -197,9 +197,26 @@ const updateWinningAmountByUsers = async (battle) => {
   }
 };
 
+
+const updateWalletAndDeleteTransaction = async (userId, entryFee, battleId) => {
+  const user = await User.findOne({ _id: userId });
+  const transaction = await Transaction.deleteOne({
+    battleId: battleId,
+    userId: userId,
+  });
+
+  if (transaction.deletedCount > 0) {
+    user.balance.totalBalance += entryFee;
+    user.balance.totalWalletBalance += entryFee;
+    await user.save();
+  }
+};
+
+
 module.exports = {
   updateTransactionForStartingGame,
   updateWinningAmountForWinner,
   isValidAmount,
   updateWinningAmountByUsers,
+  updateWalletAndDeleteTransaction,
 };

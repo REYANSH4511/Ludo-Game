@@ -300,7 +300,6 @@ exports.adminDashboard = async (req, res) => {
         message: getMessage("M015"),
       });
     }
-
     const { fromDate, toDate } = req.query;
 
     const dayjs = require("dayjs");
@@ -311,8 +310,8 @@ exports.adminDashboard = async (req, res) => {
       fromDate && toDate
         ? {
             createdAt: {
-              $gte: dayjs(`${fromDate}T00:00:00`).utcOffset(-5.5).toDate(),
-              $lte: dayjs(`${toDate}T23:59:59`).utcOffset(-5.5).toDate(),
+              $gte: dayjs(fromDate).startOf("day").utc().toDate(),
+              $lte: dayjs(toDate).endOf("day").utc().toDate(),
             },
           }
         : {};
@@ -859,7 +858,7 @@ exports.getUserDetails = async (req, res) => {
         userId,
         type: "withdraw",
         isBattleTransaction: true,
-      }),
+      }).populate("battleId"),
       Transaction.find({
         userId,
         type: "deposit",
@@ -890,8 +889,9 @@ exports.getUserDetails = async (req, res) => {
     // Calculate loss amount
     const loseAmount =
       battleTransactions.length > 0
-        ? battleTransactions?.reduce((total, transaction) => {
-            return transaction?.battleId?.winner?.toString() !== userId
+        ? battleTransactions.reduce((total, transaction) => {
+            return transaction?.battleId?.winner &&
+              transaction?.battleId?.winner?.toString() !== userId?.toString()
               ? total + transaction.amount
               : total;
           }, 0)

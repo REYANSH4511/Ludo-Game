@@ -8,10 +8,12 @@ const {
   updateWinningAmountForWinner,
   isValidAmount,
   updateWinningAmountByUsers,
+  updateWalletAndDeleteTransaction,
 } = require("../utils/battleHelper");
 const Transaction = require("../models/transaction.model");
 const BattleCommission = require("../models/battleCommission.model");
 const Settings = require("../models/settings.model");
+const mongoose = require("mongoose");
 
 // create battle
 exports.createBattle = async (req, res) => {
@@ -218,9 +220,17 @@ exports.battlesListForAllUser = async (req, res) => {
         return battleObj;
       });
 
-    const liveBattles = battles.filter(
-      (battle) => battle.status === "PLAYING" || battle.status === "CONFLICT"
-    );
+    const liveBattles = battles
+      ?.filter(
+        (battle) => battle.status === "PLAYING" || battle.status === "CONFLICT"
+      )
+      ?.sort((a, b) =>
+        a.createdBy?.toString() === _id
+          ? -1
+          : b.createdBy.toString() === _id
+          ? 1
+          : 0
+      );
 
     return successHandler({
       res,
@@ -260,7 +270,7 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
       return errorHandler({
         res,
         statusCode: 400,
-        message: getMessage("M033"),
+        message: getMessage("M074"),
       });
     }
 
@@ -308,11 +318,37 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
       userDetails.balance.totalWalletBalance;
     await battleDetails.save();
 
-    await Battle.deleteMany({
-      _id: { $ne: battleId },
+    const battlesToDelete = await Battle.find({
+      _id: { $ne: mongoose.Types.ObjectId(battleId) },
       status: "OPEN",
-      createdBy: { $in: [battleDetails.createdBy, battleDetails.acceptedBy] },
+      $or: [
+        {
+          createdBy: battleDetails.createdBy,
+        },
+        {
+          createdBy: battleDetails.acceptedBy,
+        },
+      ],
     });
+
+    if (battlesToDelete.length > 0) {
+      const battleIds = battlesToDelete.map((battle) => battle._id);
+
+      await Battle.deleteMany({ _id: { $in: battleIds } });
+      for (const battle of battlesToDelete) {
+        await updateWalletAndDeleteTransaction(
+          battle.createdBy,
+          battle.entryFee,
+          battle._id
+        );
+
+        await updateWalletAndDeleteTransaction(
+          battle.acceptedBy,
+          battle.entryFee,
+          battle._id
+        );
+      }
+    }
 
     return successHandler({
       res,
@@ -378,11 +414,37 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
           battleDetails._id
         );
 
-        await Battle.deleteOne({
-          _id: { $ne: battleId },
+        const battlesToDelete = await Battle.find({
+          _id: { $ne: mongoose.Types.ObjectId(battleId) },
           status: "OPEN",
-          createdBy: _id,
+          $or: [
+            {
+              createdBy: battleDetails.createdBy,
+            },
+            {
+              createdBy: battleDetails.acceptedBy,
+            },
+          ],
         });
+
+        if (battlesToDelete.length > 0) {
+          const battleIds = battlesToDelete.map((battle) => battle._id);
+
+          await Battle.deleteMany({ _id: { $in: battleIds } });
+          for (const battle of battlesToDelete) {
+            await updateWalletAndDeleteTransaction(
+              battle.createdBy,
+              battle.entryFee,
+              battle._id
+            );
+
+            await updateWalletAndDeleteTransaction(
+              battle.acceptedBy,
+              battle.entryFee,
+              battle._id
+            );
+          }
+        }
       } else {
         return errorHandler({
           res,
@@ -459,7 +521,7 @@ exports.startGameByAcceptedUser = async (req, res) => {
       return errorHandler({
         res,
         statusCode: 400,
-        message: getMessage("M015"),
+        message: getMessage("M041"),
       });
     }
 
@@ -476,6 +538,43 @@ exports.startGameByAcceptedUser = async (req, res) => {
       battleDetails?.entryFee,
       battleDetails._id
     );
+
+    const battlesToDelete = await Battle.find({
+      _id: { $ne: new mongoose.Types.ObjectId(req.params.battleId) },
+      status: "OPEN",
+      $or: [
+        {
+          createdBy: {
+            $in: [battleDetails.createdBy, battleDetails.acceptedBy],
+          },
+        },
+        {
+          acceptedBy: {
+            $in: [battleDetails.createdBy, battleDetails.acceptedBy],
+          },
+        },
+      ],
+    });
+
+    if (battlesToDelete.length > 0) {
+      const battleIds = battlesToDelete.map((battle) => battle._id);
+
+      await Battle.deleteMany({ _id: { $in: battleIds } });
+      for (const battle of battlesToDelete) {
+        await updateWalletAndDeleteTransaction(
+          battle.createdBy,
+          battle.entryFee,
+          battle._id
+        );
+
+        await updateWalletAndDeleteTransaction(
+          battle.acceptedBy,
+          battle.entryFee,
+          battle._id
+        );
+      }
+    }
+
     battleDetails.status = "PLAYING";
     await battleDetails.save();
 
