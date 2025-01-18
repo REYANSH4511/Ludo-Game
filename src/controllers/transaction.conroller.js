@@ -45,11 +45,9 @@ exports.createTransaction = async (req, res) => {
       });
 
       const battle = await Battle.findOne({
-        $or: [{ acceptedBy: _id }, { createdBy: _id }],
-        $or: [
-          { status: "OPEN" },
-          { status: "PLAYING" },
-          { status: "CONFLICT" },
+        $and: [
+          { $or: [{ acceptedBy: _id }, { createdBy: _id }] },
+          { status: { $in: ["OPEN", "PLAYING", "CONFLICT"] } },
         ],
       });
 
@@ -131,6 +129,11 @@ exports.getTransactions = async (req, res) => {
     }
     if (type) {
       filter.type = type;
+      if (role !== "user") {
+        filter.isBattleTransaction = false;
+        filter.isWonCash = false;
+        filter.isReferral = false;
+      }
     } else {
       filter.type = ["deposit", "withdraw", "bonus", "penalty", "referral"];
     }

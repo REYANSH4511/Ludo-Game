@@ -263,6 +263,31 @@ exports.sendCreaterAcceptRequest = async (req, res) => {
         message: getMessage("M033"),
       });
     }
+
+    const checkPlayingBattle = await Battle.findOne({
+      $or: [{ createdBy: _id }, { acceptedBy: _id }],
+      status: "PLAYING",
+    });
+
+    if (checkPlayingBattle?.acceptedBy?.toString() === _id?.toString()) {
+      if (!checkPlayingBattle?.resultUpatedBy?.acceptedUser?.matchStatus) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M036"),
+        });
+      }
+    }
+
+    if (checkPlayingBattle?.createdBy?.toString() === _id?.toString()) {
+      if (!checkPlayingBattle?.resultUpatedBy?.createdUser?.matchStatus) {
+        return errorHandler({
+          res,
+          statusCode: 400,
+          message: getMessage("M036"),
+        });
+      }
+    }
     const userDetails = await User.findOne({ _id }, { balance: 1 });
 
     const battleDetails = await Battle.findOne({
@@ -480,7 +505,13 @@ exports.enterRoomNumber = async (req, res) => {
       });
     }
     const { roomNumber, battleId } = req.body;
-
+    if (!roomNumber || roomNumber.length !== 8) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M073"),
+      });
+    }
     const checkCorrectUser = await Battle.findOne({
       createdBy: _id,
       _id: battleId,

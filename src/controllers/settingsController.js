@@ -821,6 +821,9 @@ exports.getUserDetails = async (req, res) => {
       withdrawHistory,
       referralHistory,
       battleTransactions,
+      battleWonTransactions,
+      referralTransactions,
+      referralDepositTransactions,
       battles,
     ] = await Promise.all([
       User.findById(userId)
@@ -852,10 +855,23 @@ exports.getUserDetails = async (req, res) => {
         userId,
         type: "withdraw",
         isBattleTransaction: true,
-      })
-        .sort({ createdAt: -1 })
-        .populate("battleId", "winner")
-        .lean(),
+      }),
+      Transaction.find({
+        userId,
+        type: "deposit",
+        isBattleTransaction: true,
+        isWonCash: true,
+      }),
+      Transaction.find({
+        userId,
+        type: "referral",
+        isReferral: true,
+      }),
+      Transaction.find({
+        userId,
+        type: "deposit",
+        isReferral: true,
+      }),
       Battle.find({
         $or: [{ createdBy: userId }, { acceptedBy: userId }],
       })
@@ -877,6 +893,14 @@ exports.getUserDetails = async (req, res) => {
           }, 0)
         : 0;
 
+    const wonAmount =
+      battleWonTransactions.length > 0
+        ? battleWonTransactions.reduce(
+            (total, transaction) => total + transaction.amount,
+            0
+          )
+        : 0;
+
     // Update battle win status
     battles?.forEach((battle) => {
       battle.winStatus = battle?.winner?._id
@@ -888,10 +912,21 @@ exports.getUserDetails = async (req, res) => {
         battle?.createdBy?._id.toString() === userId?.toString();
     });
 
+    const referralCount = referralTransactions?.length || 0;
+
+    const totalReferralAmountCredited = referralDepositTransactions?.reduce(
+      (total, transaction) => total + transaction.amount,
+      0
+    );
     // Attach loss amount to user balance
     const userDetails = {
       ...user,
-      balance: { ...user?.balance, loseAmount },
+      balance: {
+        ...user?.balance,
+        loseAmount,
+        wonAmount,
+        totalReferralAmountCredited,
+      },
       holdBalance:
         withdrawHistory.length > 0
           ? withdrawHistory.reduce(
@@ -902,7 +937,8 @@ exports.getUserDetails = async (req, res) => {
               0
             )
           : 0,
-      totalReferralCount: user?.referredUsers?.length,
+      totalReferralCount: referralCount,
+      totalReferralAmountCredited,
       missmatchWalletBallance: 0,
       totalWithdrawAmount:
         withdrawHistory.length > 0

@@ -11,9 +11,7 @@ const Validators = {
   }),
   validEnterRoomNumber: Joi.object({
     battleId: Joi.string().required(),
-    roomNumber: Joi.string()
-      .pattern(/^\d{8}$/)
-      .required(),
+    roomNumber: Joi.string().required(),
   }),
   ValidUpdateBattleResultByUser: Joi.object({
     battleId: Joi.string().required(),

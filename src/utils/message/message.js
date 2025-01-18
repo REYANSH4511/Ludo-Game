@@ -71,4 +71,5 @@ exports.messageList = {
   M070: "Invalid request!",
   M071: "One withdraw request already exists!",
   M072: "Withdraw request not alowed, while battle is in progress!",
+  M073: "Room No. should be 8 characters long!",
 };
