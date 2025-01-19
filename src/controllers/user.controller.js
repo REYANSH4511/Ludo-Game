@@ -57,18 +57,91 @@ exports.generateOTP = async (req, res) => {
         console.log(err?.message);
       });
 
+    const user = await User.findOne({ mobileNo });
+
+    if (!user?.isActive) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M065"),
+      });
+    }
+
     await OTP.findOneAndUpdate(
       { mobileNo },
       { otp, expiresAt },
       { upsert: true, new: true }
     );
-    const user = await User.findOne({ mobileNo });
 
     return successHandler({
       res,
       data: {
         isCouponApplied: user.isVerified ? true : user.referedBy ? true : false,
       },
+      statusCode: 200,
+      message: getMessage("M001"),
+    });
+  } catch (err) {
+    return errorHandler({
+      res,
+      statusCode: 500,
+      message: err.message,
+    });
+  }
+};
+
+exports.resendOTP = async (req, res) => {
+  try {
+    const { mobileNo } = req.body;
+    if (!mobileNo) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M002"),
+      });
+    }
+    const user = await User.findOne({ mobileNo });
+    if (!user) {
+      return errorHandler({
+        res,
+        statusCode: 400,
+        message: getMessage("M002"),
+      });
+    }
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const expiresAt = dayjs().add(5, "minute");
+
+    await OTP.findOneAndUpdate(
+      { mobileNo },
+      { otp, expiresAt },
+      { upsert: true, new: true }
+    );
+
+    const smsData = {
+      route: "otp",
+      language: "english",
+      numbers: mobileNo,
+      variables_values: Number(otp),
+    };
+
+    const options = {
+      headers: {
+        authorization: process.env.FAST2SMS_API_KEY,
+        "Content-Type": "application/json",
+      },
+    };
+
+    axios
+      .post("https://www.fast2sms.com/dev/bulkV2", smsData, options)
+      .then((res) => {
+        // console.log(res);
+      })
+      .catch((err) => {
+        console.log(err?.message);
+      });
+
+    return successHandler({
+      res,
       statusCode: 200,
       message: getMessage("M001"),
     });

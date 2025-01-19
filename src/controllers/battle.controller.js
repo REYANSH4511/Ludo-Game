@@ -1040,28 +1040,54 @@ exports.updateBattleResultByAdmin = async (req, res) => {
       battleDetails?.resultUpatedBy?.acceptedBy?.cancellationReason ===
         "notJoined"
     ) {
-      const transacion = await Transaction.deleteOne({
-        battleId,
-        userId: battleDetails?.createdBy,
-      });
-      if (transacion.deletedCount === 0) {
-        return errorHandler({
-          res,
-          statusCode: 400,
-          message: getMessage("M048"),
+      if (battleDetails?.createdBy) {
+        const createdByUserTransaction = await Transaction.deleteOne({
+          battleId,
+          userId: battleDetails?.createdBy,
         });
+        if (createdByUserTransaction?.deletedCount === 0) {
+          return errorHandler({
+            res,
+            statusCode: 400,
+            message: getMessage("M048"),
+          });
+        }
+        const createdByUser = await User.findOne(
+          { _id: battleDetails?.createdBy },
+          { balance: 1 }
+        );
+
+        Object.assign(createdByUser.balance, {
+          totalBalance:
+            createdByUser.balance.totalBalance + battleDetails.entryFee,
+          battlePlayed: createdByUser.balance.battlePlayed - 1,
+        });
+
+        await createdByUser.save();
       }
-      const user = await User.findOne(
-        { _id: battleDetails?.createdBy },
-        { balance: 1 }
-      );
 
-      Object.assign(user.balance, {
-        totalBalance: user.balance.totalBalance + battleDetails.entryFee,
-        battlePlayed: user.balance.battlePlayed - 1,
-      });
+      if (battleDetails?.acceptedBy) {
+        const acceptedByUserTransaction = await Transaction.deleteOne({
+          battleId,
+          userId: battleDetails?.acceptedBy,
+        });
 
-      await user.save();
+        if (acceptedByUserTransaction?.deletedCount > 0) {
+          const acceptedByUser = await User.findOne(
+            { _id: battleDetails?.acceptedBy },
+            { balance: 1 }
+          );
+
+          Object.assign(acceptedByUser.balance, {
+            totalBalance:
+              acceptedByUser.balance.totalBalance + battleDetails.entryFee,
+            battlePlayed: acceptedByUser.balance.battlePlayed - 1,
+          });
+
+          await acceptedByUser.save();
+        }
+      }
+      
     } else {
       if (
         battleDetails?.matchStatus !== "PENDING" &&

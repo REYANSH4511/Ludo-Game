@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const helmet = require("helmet");
 const { connectDB } = require("./dbConnection");
 const app = express();
 const userRouter = require("./src/routes/user.routes");
@@ -15,6 +16,8 @@ const PORT = process.env.PORT || 8000;
 const swaggerUi = require("swagger-ui-express");
 app.use(cors());
 app.use(bodyParser.json());
+app.use(helmet());
+app.use(express.json());
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/transaction", transactionRouter);
