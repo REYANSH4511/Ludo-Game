@@ -1,5 +1,8 @@
 const Battle = require("../models/battle.model");
-const { updateWinningAmountForWinner } = require("../utils/battleHelper");
+const {
+  updateWinningAmountForWinner,
+  updateWalletAndDeleteTransaction,
+} = require("../utils/battleHelper");
 const dayjs = require("dayjs");
 exports.updateBattleResult = async () => {
   try {
@@ -52,7 +55,8 @@ exports.updateBattleResult = async () => {
 
 exports.updateBttleResultNotUpdatedByUser = async () => {
   try {
-    const thirtyMinutesAgo = dayjs().subtract(30, "minute").toDate();
+    const thirtyMinutesAgo = new Date();
+    thirtyMinutesAgo.setMinutes(thirtyMinutesAgo.getMinutes() - 45);
 
     const battles = await Battle.find({
       status: { $in: ["OPEN", "PLAYING"] },
@@ -114,15 +118,37 @@ exports.updateBttleResultNotUpdatedByUser = async () => {
 };
 exports.updateBattleIFNoAcceptor = async () => {
   try {
-    const fiveMinutesAgo = dayjs().subtract(5, "minute").toDate();
-    const deletedBattles = await Battle.deleteMany({
+    const fiveMinutesAgo = new Date();
+    fiveMinutesAgo.setMinutes(fiveMinutesAgo.getMinutes() - 5);
+
+    const battlesToDelete = await Battle.find({
       status: { $in: ["OPEN", "PLAYING"] },
       createdAt: { $lte: fiveMinutesAgo },
       acceptedBy: null,
-    }).exec();
+    });
 
-    if (deletedBattles.deletedCount > 0) {
-      console.log("deleted", deletedBattles.deletedCount);
+    if (battlesToDelete?.length > 0) {
+      const battleIds = battlesToDelete.map((battle) => battle._id);
+
+      await Battle.deleteMany({ _id: { $in: battleIds } });
+
+      for (const battle of battlesToDelete) {
+        await updateWalletAndDeleteTransaction(
+          battle?.createdBy,
+          battle?.entryFee,
+          battle?._id
+        );
+
+        await updateWalletAndDeleteTransaction(
+          battle?.acceptedBy,
+          battle?.entryFee,
+          battle?._id
+        );
+      }
+    }
+
+    if (battlesToDelete.length > 0) {
+      console.log("deleted", battlesToDelete?.length);
     }
   } catch (err) {
     console.log("error", err);

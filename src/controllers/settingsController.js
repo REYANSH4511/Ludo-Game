@@ -6,6 +6,10 @@ const Notification = require("../models/notifications.model");
 const getMessage = require("../utils/message");
 const { errorHandler, successHandler } = require("../utils/responseHandler");
 const BattleCommission = require("../models/battleCommission.model");
+const {
+  changeDateTimeToNight,
+  changeDateTimeToNightAfter,
+} = require("../utils/dateHelper");
 
 // update social media links
 exports.updateSocialMediaLinks = async (req, res) => {
@@ -302,16 +306,12 @@ exports.adminDashboard = async (req, res) => {
     }
     const { fromDate, toDate } = req.query;
 
-    const dayjs = require("dayjs");
-    const utc = require("dayjs/plugin/utc");
-    dayjs.extend(utc);
-
     const dateFilter =
       fromDate && toDate
         ? {
             createdAt: {
-              $gte: dayjs(fromDate).startOf("day").utc().toDate(),
-              $lte: dayjs(toDate).endOf("day").utc().toDate(),
+              $gte: changeDateTimeToNight(new Date(fromDate)),
+              $lte: changeDateTimeToNightAfter(new Date(toDate)),
             },
           }
         : {};
@@ -352,10 +352,21 @@ exports.adminDashboard = async (req, res) => {
       totalBonus,
       totalPenalty,
       totalWithdrawRequest,
+      totalReferralAmountUser,
     ] = await Promise.all([
-      getCount(User, { role: "user", ...dateFilter }),
-      getCount(User, { role: "user", isActive: true, ...dateFilter }),
-      getCount(User, { role: "user", isActive: false, ...dateFilter }),
+      getCount(User, { role: "user", isVerified: true, ...dateFilter }),
+      getCount(User, {
+        role: "user",
+        isVerified: true,
+        isActive: true,
+        ...dateFilter,
+      }),
+      getCount(User, {
+        role: "user",
+        isVerified: true,
+        isActive: false,
+        ...dateFilter,
+      }),
       getCount(User, { role: "admin", ...dateFilter }),
       getCount(User, { role: "admin", isActive: true, ...dateFilter }),
       getCount(User, { role: "admin", isActive: false, ...dateFilter }),
@@ -462,17 +473,34 @@ exports.adminDashboard = async (req, res) => {
         isBattleTransaction: false,
         ...dateFilter,
       }),
+      getAggregateTotal(
+        Transaction,
+        {
+          type: "referral",
+          isReferral: true,
+          status: "approved",
+          ...dateFilter,
+        },
+        "amount"
+      ),
     ]);
 
     const userBalances = await User.find(
       { role: "user", isActive: true, ...dateFilter },
       { balance: 1 }
     );
-    const totalWalletBalance = userBalances.reduce(
-      (total, user) => total + user.balance.totalBalance + user.balance.cashWon,
+
+    const userBalancesForReferral = await User.find(
+      { role: "user", isActive: true },
+      { balance: 1 }
+    );
+
+    const totalWalletBalance = userBalancesForReferral.reduce(
+      (total, user) => total + user.balance.totalWalletBalance,
       0
     );
-    const pendingReferralAmount = userBalances.reduce(
+
+    const pendingReferralAmount = userBalancesForReferral.reduce(
       (total, user) => total + user.balance.referralEarning,
       0
     );
@@ -514,6 +542,7 @@ exports.adminDashboard = async (req, res) => {
       holdBalance,
       totalPenalty,
       totalWithdrawRequest,
+      totalReferralAmountUser,
     };
 
     return successHandler({
@@ -646,7 +675,7 @@ exports.getAllUsersList = async (req, res) => {
       });
     }
     const users = await User.find(
-      { role: "user" },
+      { role: "user", isVerified: true },
       { _id: 1, name: 1, mobileNo: 1, createdAt: 1, isActive: 1 }
     );
     return successHandler({
@@ -867,12 +896,12 @@ exports.getUserDetails = async (req, res) => {
       }),
       Transaction.find({
         userId,
-        type: "referral",
+        type: "deposit",
         isReferral: true,
       }),
       Transaction.find({
         userId,
-        type: "deposit",
+        type: "referral",
         isReferral: true,
       }),
       Battle.find({
@@ -916,7 +945,7 @@ exports.getUserDetails = async (req, res) => {
         battle?.createdBy?._id.toString() === userId?.toString();
     });
 
-    const referralCount = referralTransactions?.length || 0;
+    const referralCount = referralDepositTransactions?.length || 0;
 
     const totalReferralAmountCredited = referralDepositTransactions?.reduce(
       (total, transaction) => total + transaction.amount,

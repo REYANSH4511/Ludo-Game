@@ -81,6 +81,14 @@ const transactionSchema = new Schema(
       ref: "User",
       default: null,
     },
+    depositWalletBalance: {
+      type: Number,
+      default: 0,
+    },
+    cashWonWalletBalance: {
+      type: Number,
+      default: 0,
+    },
     screenShot: {
       type: String,
       default: null,

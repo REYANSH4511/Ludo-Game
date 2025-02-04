@@ -132,6 +132,10 @@ const userSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    authToken: {
+      type: String,
+      default: null,
+    },
     kycDocument: {
       type: kycDocumentSchema,
       default: () => ({}),

@@ -72,8 +72,8 @@ const updateWinningAmountForWinner = async (data) => {
         acceptedUser.balance.totalWalletBalance += data.entryFee;
       }
 
-      await createdUser.save();
-      await acceptedUser.save();
+      await createdUser?.save();
+      await acceptedUser?.save();
     } else {
       if (!data.winner) return;
       const userDetails = await User.findOne({ _id: data.winner });
@@ -86,7 +86,7 @@ const updateWinningAmountForWinner = async (data) => {
         amount: data.winnerAmount,
         status: "approved",
         isBattleTransaction: true,
-        battleId: data.battleId,
+        battleId: data._id,
         isWonCash: true,
         closingBalance: userDetails?.balance?.totalWalletBalance,
       });
@@ -104,7 +104,9 @@ const updateWinningAmountForWinner = async (data) => {
       );
 
       const battleEarningPercentage = settings?.battleEarningPercentage || 20; // Default to 20 if not found
-      const commisionAmount = data?.entryFee * (battleEarningPercentage / 100);
+      const commisionAmount = Math.round(
+        data?.entryFee * (battleEarningPercentage / 100)
+      );
 
       await BattleCommission.create({
         amount: commisionAmount,
@@ -132,7 +134,7 @@ const updateWinningAmountForWinner = async (data) => {
           amount: referralAmount,
           status: "approved",
           isBattleTransaction: true,
-          battleId: data.battleId,
+          battleId: data._id,
           isReferral: true,
           closingBalance: referredUserDetails?.balance?.totalWalletBalance,
         });

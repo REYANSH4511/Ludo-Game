@@ -190,7 +190,7 @@ exports.verifyOTP = async (req, res) => {
     }
     const user = await User.findOne({ mobileNo });
 
-    const authResponse = createAuthResponse(user, res);
+    const authResponse = await createAuthResponse(user, res);
     if (referalCode && !user.referedBy) {
       const referalUser = await User.findOne({
         referalCode,

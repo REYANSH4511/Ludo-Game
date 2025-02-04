@@ -45,7 +45,8 @@ exports.createBattle = async (req, res) => {
 
     const checkPlayingBattle = await Battle.findOne({
       $or: [{ createdBy: _id }, { acceptedBy: _id }],
-      status: "PLAYING",
+      status: { $in: ["PLAYING", "OPEN"] },
+      isBattleRequestAccepted: true,
     });
 
     if (checkPlayingBattle?.acceptedBy?.toString() === _id?.toString()) {
@@ -405,44 +406,55 @@ exports.acceptOrRejectRequestByCreater = async (req, res) => {
 
     if (status === "accept") {
       if (battleDetails.createdBy.toString() === _id.toString()) {
-        payload.isBattleRequestAccepted = true;
-        messageCode = "M038";
-
-        await updateTransactionForStartingGame(
-          _id,
-          battleDetails.entryFee,
-          battleDetails._id
-        );
-
-        const battlesToDelete = await Battle.find({
-          _id: { $ne: new mongoose.Types.ObjectId(battleId) },
-          status: "OPEN",
-          $or: [
-            {
-              createdBy: battleDetails.createdBy,
-            },
-            {
-              createdBy: battleDetails.acceptedBy,
-            },
-          ],
-        });
-
-        if (battlesToDelete.length > 0) {
-          const battleIds = battlesToDelete.map((battle) => battle._id);
-
-          await Battle.deleteMany({ _id: { $in: battleIds } });
-          for (const battle of battlesToDelete) {
-            await updateWalletAndDeleteTransaction(
-              battle.createdBy,
-              battle.entryFee,
-              battle._id
+        if (!battleDetails?.isBattleRequestAccepted) {
+          payload.isBattleRequestAccepted = true;
+          messageCode = "M038";
+          const checkTransaction = await Transaction.findOne({
+            battleId: battleDetails._id,
+            entryFee: battleDetails.entryFee,
+            type: "withdraw",
+            status: "approved",
+            isBattleTransaction: true,
+            userId: _id,
+          });
+          if (!checkTransaction) {
+            await updateTransactionForStartingGame(
+              _id,
+              battleDetails.entryFee,
+              battleDetails._id
             );
+          }
 
-            await updateWalletAndDeleteTransaction(
-              battle.acceptedBy,
-              battle.entryFee,
-              battle._id
-            );
+          const battlesToDelete = await Battle.find({
+            _id: { $ne: new mongoose.Types.ObjectId(battleId) },
+            status: "OPEN",
+            $or: [
+              {
+                createdBy: battleDetails.createdBy,
+              },
+              {
+                createdBy: battleDetails.acceptedBy,
+              },
+            ],
+          });
+
+          if (battlesToDelete.length > 0) {
+            const battleIds = battlesToDelete.map((battle) => battle._id);
+
+            await Battle.deleteMany({ _id: { $in: battleIds } });
+            for (const battle of battlesToDelete) {
+              await updateWalletAndDeleteTransaction(
+                battle.createdBy,
+                battle.entryFee,
+                battle._id
+              );
+
+              await updateWalletAndDeleteTransaction(
+                battle.acceptedBy,
+                battle.entryFee,
+                battle._id
+              );
+            }
           }
         }
       } else {
@@ -515,7 +527,10 @@ exports.startGameByAcceptedUser = async (req, res) => {
       });
     }
 
-    const battleDetails = await Battle.findOne({ _id: req.params.battleId });
+    const battleDetails = await Battle.findOne({
+      _id: req.params.battleId,
+      status: "OPEN",
+    });
 
     if (!battleDetails) {
       return errorHandler({
@@ -623,7 +638,7 @@ exports.enterRoomNumber = async (req, res) => {
       });
     }
     await Battle.findOneAndUpdate(
-      { createdBy: _id, _id: battleId, status: "PLAYING" },
+      { createdBy: _id, _id: battleId },
       { roomNo: roomNumber },
       { new: true }
     );
@@ -944,7 +959,11 @@ exports.updateBattleResultByUser = async (req, res) => {
         message: getMessage("M041"),
       });
     }
-    if (battleDetails?.status !== "PLAYING") {
+    // if (battleDetails?.status !== "PLAYING") {
+    if (
+      battleDetails?.status !== "PLAYING" &&
+      battleDetails?.status !== "OPEN"
+    ) {
       return errorHandler({
         res,
         statusCode: 400,
@@ -952,9 +971,9 @@ exports.updateBattleResultByUser = async (req, res) => {
       });
     }
     const isAcceptedUser =
-      battleDetails.acceptedBy.toString() === _id.toString();
+      battleDetails?.acceptedBy?.toString() === _id?.toString();
     const isCreatedUser =
-      battleDetails?.createdBy.toString() === _id.toString();
+      battleDetails?.createdBy?.toString() === _id?.toString();
 
     if (!isAcceptedUser && !isCreatedUser) {
       return errorHandler({
@@ -1087,7 +1106,6 @@ exports.updateBattleResultByAdmin = async (req, res) => {
           await acceptedByUser.save();
         }
       }
-      
     } else {
       if (
         battleDetails?.matchStatus !== "PENDING" &&
